@@ -21,11 +21,13 @@ body {
 }
 
 .content {
-    padding: 40px;
+    padding: 24px;
+    background-color: #f0f2f5;
+    min-height: calc(100vh - 64px);
 }
 
 .sider {
-    height: 100vh;
+    height: 107vh;
     width: 250px;
     background: #001529;
     flex-shrink: 0;
@@ -145,4 +147,73 @@ body {
 
 .userblock:hover{
     background-color: #2563eb;
+}
+
+.dashboard {
+    width: 100%;
+}
+
+.dashboard_kpi {
+    margin-bottom: 24px;
+}
+
+.dashboard_pie_container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pie_wrapper {
+    width: 55%;
+    position: relative;
+}
+
+.pie_center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.pie_total {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.pie_label {
+    font-size: 12px;
+    color: #888;
+}
+
+.pie_legend {
+    width: 40%;
+}
+
+.legend_item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.legend_left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend_dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.legend_color_0 { background: #1677ff; }
+.legend_color_1 { background: #13c2c2; }
+.legend_color_2 { background: #52c41a; }
+.legend_color_3 { background: #faad14; }
+
+.legend_value {
+    font-weight: 500;
 }
