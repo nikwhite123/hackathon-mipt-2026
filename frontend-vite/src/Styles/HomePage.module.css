@@ -102,7 +102,7 @@ body {
 .cardText {
     color: #94a3b8;
 }
-
+/* тут шапка */
 .header {
     display: flex;
     justify-content: space-between;
@@ -148,7 +148,7 @@ body {
 .userblock:hover{
     background-color: #2563eb;
 }
-
+/* тут дашборды */
 .dashboard {
     width: 100%;
 }

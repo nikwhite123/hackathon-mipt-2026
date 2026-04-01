@@ -6,7 +6,7 @@ export const useFetch = (mockData) => {
   useEffect(() => {
     // имитация API
     setTimeout(() => {
-      setData(mockData);
+      setData(mockData); //заменить потом нужно на реальный api
     }, 500);
   }, []);
 

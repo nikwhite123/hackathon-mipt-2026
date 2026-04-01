@@ -3,6 +3,7 @@ import styles from "../Styles/HomePage.module.css"
 import Sidebar from "../components/layout/Sidebar";
 import AppHeader from "../components/layout/Header";
 import Dashboard from "../components/layout/Dashboard";
+import Charts from "../components/layout/Сharts";
 
 const HomePage: React.FC = () => {
     return (
@@ -16,7 +17,9 @@ const HomePage: React.FC = () => {
                 <AppHeader />
 
                 <div className={styles.content}>
-                    <Dashboard />
+                    {/* <Dashboard /> */}
+                    <Charts />
+
                 </div>
             </div>
         </div>
