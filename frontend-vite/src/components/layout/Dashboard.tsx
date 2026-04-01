@@ -1,128 +1,101 @@
 import React from "react";
-import { Card, Row, Col, Statistic } from "antd";
-import { Area, Pie } from "@ant-design/plots";
-import  styles from "../../Styles/HomePage.module.css";
+import { Card, Row, Col } from "antd";
+import { Pie } from "@ant-design/plots";
 
 const Dashboard: React.FC = () => {
-  const areaData = [
-    { time: "00:00", value: 3 },
-    { time: "04:00", value: 7 },
-    { time: "08:00", value: 15 },
-    { time: "12:00", value: 10 },
-    { time: "16:00", value: 18 },
-    { time: "20:00", value: 8 },
+  const threatData = [
+    { type: "Сервер", value: 45, count: 12, color: "#6d28d9" },
+    { type: "Приложение", value: 35, count: 9, color: "#10b981" },
+    { type: "База данных", value: 20, count: 5, color: "#f59e0b" },
   ];
 
-  const pieData = [
-    { type: "DDoS", value: 40 },
-    { type: "Phishing", value: 25 },
-    { type: "Malware", value: 20 },
-    { type: "Brute Force", value: 15 },
-  ];
-
-  const total = pieData.reduce((acc, item) => acc + item.value, 0);
-
-  const areaConfig = {
-    data: areaData,
-    xField: "time",
-    yField: "value",
-    smooth: true,
-
-    color: "#1677ff",
-
-    areaStyle: () => ({
-      fill: "l(270) 0:rgba(22,119,255,0.4) 1:rgba(22,119,255,0)",
-    }),
-
-    tooltip: {
-      showCrosshairs: true,
-    },
-
-    height: 300,
-  };
+  const totalThreats = threatData.reduce((sum, item) => sum + item.count, 0);
 
   const pieConfig = {
-    data: pieData,
+    data: threatData,
     angleField: "value",
     colorField: "type",
-
-    innerRadius: 0.7,
-    radius: 0.9,
-
+    innerRadius: 0.72,   
+    radius: 0.95,
+    paddingAngle: 3,   
     legend: false,
     label: false,
 
-    height: 300,
+    color: ({ type }: any) => {
+      if (type === "Сервер") return "#6d28d9";
+      if (type === "Приложение") return "#10b981";
+      return "#f59e0b";
+    },
+
+    height: 260,
+    width: 260,
+    statistic: null,
   };
 
   return (
-    <div className={styles.dashboard}>
-      <Row gutter={16} className={styles.dashboard_kpi}>
-        <Col span={8}>
-          <Card>
-            <Statistic title="Всего атак" value={124} />
-          </Card>
+    <Card
+      title="Распространение угроз"
+      extra={<a href="#" style={{ color: "#6d28d9", fontWeight: 500 }}>Подробнее</a>}
+      bordered={false}
+      style={{ borderRadius: 12, marginTop: 20, maxWidth: 580 }}
+      bodyStyle={{ padding: "24px 20px" }}
+    >
+      <Row gutter={24} align="middle">
+        <Col flex="none" style={{ position: "relative" }}>
+          <Pie {...pieConfig} />
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              textAlign: "center",
+              pointerEvents: "none",
+            }}
+          >
+            <div style={{ fontSize: "38px", fontWeight: 700, color: "#1f1f1f", lineHeight: 1 }}>
+              {totalThreats}
+            </div>
+            <div style={{ fontSize: "13px", color: "#8c8c8c", marginTop: "6px" }}>
+              Всего угроз
+            </div>
+          </div>
         </Col>
-
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title="Критические"
-              value={32}
-              valueStyle={{ color: '#ff4d4f' }}
-            />
-          </Card>
-        </Col>
-
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title="Предотвращено"
-              value={87}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <Row gutter={16}>
-        <Col span={16}>
-          <Card title="Атаки по времени" bordered={false}>
-            <Area {...areaConfig} />
-          </Card>
-        </Col>
-
-        <Col span={8}>
-          <Card title="Типы атак" bordered={false}>
-            <div className={styles.dashboard_pie_container}>
-
-              <div className={styles.pie_wrapper}>
-                <Pie {...pieConfig} />
-
-                <div className={styles.pie_center}>
-                  <div className={styles.pie_total}>{total}</div>
-                  <div className={styles.pie_label}>атак</div>
+        <Col flex="auto" style={{ minWidth: 220 }}>
+          {threatData.map((item, index) => (
+            <div
+              key={item.type}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: index === threatData.length - 1 ? 0 : 20,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    width: 11,
+                    height: 11,
+                    borderRadius: "50%",
+                    backgroundColor: item.color,
+                  }}
+                />
+                <div>
+                  <div style={{ fontWeight: 500, color: "#1f1f1f", fontSize: "14px" }}>
+                    {item.type}
+                  </div>
+                  <div style={{ fontSize: "12.5px", color: "#8c8c8c" }}>
+                    {item.count} угроз
+                  </div>
                 </div>
               </div>
-
-              <div className={styles.pie_legend}>
-                {pieData.map((item, index) => (
-                  <div key={item.type} className={styles.legend_item}>
-                    <div className={styles.legend_left}>
-                      <div className={`${styles.legend_dot} ${styles[`legend_color_${index}`]}`} />
-                      <span>{item.type}</span>
-                    </div>
-
-                    <span className={styles.legend_value}>{item.value}</span>
-                  </div>
-                ))}
-              </div>
-
+              <div style={{ fontWeight: 600, fontSize: "15px" }}>{item.value}%</div>
             </div>
-          </Card>
+          ))}
         </Col>
       </Row>
-    </div>
+    </Card>
   );
 };
 

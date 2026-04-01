@@ -17,9 +17,8 @@ const HomePage: React.FC = () => {
                 <AppHeader />
 
                 <div className={styles.content}>
-                    {/* <Dashboard /> */}
                     <Charts />
-
+                    <Dashboard />
                 </div>
             </div>
         </div>
