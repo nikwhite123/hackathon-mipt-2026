@@ -2,30 +2,46 @@ import React from "react";
 import { Layout, Menu } from "antd";
 import {
     HomeOutlined,
+    BookOutlined,
     LineChartOutlined,
     SecurityScanOutlined,
-    SettingOutlined,
+    SettingOutlined
 } from "@ant-design/icons";
+
 import styles from "../../Styles/HomePage.module.css";
 
 const { Sider } = Layout;
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+    onMenuClick: (key: string) => void;     // ← добавили пропс
+    selectedKey: string;                    // ← чтобы подсвечивалась текущая страница
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onMenuClick, selectedKey }) => {
     return (
         <Sider width={250} className={styles.sider}>
             <div className={styles.logo}>My Dashboard</div>
 
-            <Menu theme="dark" mode="inline" defaultSelectedKeys={["1"]} style={{ borderRight: 0 }}>
-                <Menu.Item key="1" icon={<HomeOutlined />}>
-                    Главная
+            <Menu
+                theme="dark"
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                style={{ borderRight: 0 }}
+                onClick={({ key }) => onMenuClick(key)}
+            >
+                <Menu.Item key="dashboard" icon={<HomeOutlined />}>
+                    Дашборд
                 </Menu.Item>
-                <Menu.Item key="2" icon={<LineChartOutlined />}>
+                <Menu.Item key="glossary" icon={<BookOutlined />}>
+                    Глоссарий
+                </Menu.Item>
+                <Menu.Item key="analytics" icon={<LineChartOutlined />}>
                     Аналитика
                 </Menu.Item>
-                <Menu.Item key="3" icon={<SecurityScanOutlined />}>
+                <Menu.Item key="predictions" icon={<SecurityScanOutlined />}>
                     Предсказания
                 </Menu.Item>
-                <Menu.Item key="4" icon={<SettingOutlined />}>
+                <Menu.Item key="settings" icon={<SettingOutlined />}>
                     Настройки
                 </Menu.Item>
             </Menu>
