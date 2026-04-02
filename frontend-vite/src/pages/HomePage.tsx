@@ -5,34 +5,29 @@ import AppHeader from "../components/layout/Header";
 import Dashboard from "../components/layout/Dashboard";
 import Charts from "../components/layout/Сharts";
 import Glossary from "../components/layout/Glossary.tsx";
+import AnalyticsPage from "./AnalyticsPage.tsx";
 
 const HomePage: React.FC = () => {
-    const [activeMenu, setActiveMenu] = useState<"dashboard" | "glossary">("dashboard");
-
-    const handleMenuClick = (key: string) => {
-        if (key === "glossary") {
-            setActiveMenu("glossary");
-        } else {
-            setActiveMenu("dashboard");
-        }
-    };
+    const [activeMenu, setActiveMenu] = useState("dashboard"); // просто строка
 
     return (
         <div className={styles.page}>
-            <Sidebar onMenuClick={handleMenuClick} selectedKey={activeMenu}/>
+            <Sidebar onMenuClick={setActiveMenu} selectedKey={activeMenu} />
 
             <div className={styles.main}>
-                <AppHeader/>
+                <AppHeader />
 
                 <div className={styles.content}>
-                    {activeMenu === "dashboard" && (
+                    {activeMenu === "dashboard" ? (
                         <>
-                            <Charts/>
-                            <Dashboard/>
+                            <Charts />
+                            <Dashboard />
                         </>
-                    )}
-
-                    {activeMenu === "glossary" && <Glossary/>}
+                    ) : activeMenu === "glossary" ? (
+                        <Glossary />
+                    ) : activeMenu === "analytics" ? (
+                        <AnalyticsPage />
+                    ) : null}
                 </div>
             </div>
         </div>
