@@ -1,0 +1,30 @@
+[
+  {
+    "tokens": ["password", "auth", "vpn", "login"],
+    "threat_id": "TH-003",
+    "match_score": 0.91,
+    "reason": "Совпадение по признакам слабой аутентификации или удаленного доступа.",
+    "recommendation_method": "brute_force"
+  },
+  {
+    "tokens": ["sql", "input", "query", "web"],
+    "threat_id": "TH-004",
+    "match_score": 0.88,
+    "reason": "Описание уязвимости похоже на проблемы валидации ввода или БД-запросов.",
+    "recommendation_method": "sql_injection"
+  },
+  {
+    "tokens": ["mail", "phish", "attachment", "macro"],
+    "threat_id": "TH-001",
+    "match_score": 0.84,
+    "reason": "Есть связь с почтой, вложениями или фишинговым вектором доставки.",
+    "recommendation_method": "phishing"
+  },
+  {
+    "tokens": ["*"],
+    "threat_id": "TH-005",
+    "match_score": 0.62,
+    "reason": "Использован fallback-matching по общему классу endpoint-рисков.",
+    "recommendation_method": "malware"
+  }
+]

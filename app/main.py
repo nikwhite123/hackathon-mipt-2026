@@ -1,48 +1,64 @@
 from __future__ import annotations
 
-from fastapi import FastAPI, Query
+import logging
+
+from fastapi import Depends, FastAPI, Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette import status
 
+from app.dependencies import (
+    get_prediction_service,
+    get_stats_service,
+    get_threat_catalog_service,
+    get_vulnerability_mapping_service,
+)
 from app.schemas import (
     ErrorResponse,
     PredictRequest,
     PredictResponse,
+    Severity,
+    ThreatFilter,
     ThreatListResponse,
     ThreatStats,
     VulnerabilityMapRequest,
     VulnerabilityMapResponse,
 )
-from app.services import build_stats, generate_prediction, list_threats, map_vulnerabilities
+from app.services.prediction_service import PredictionService
+from app.services.stats_service import StatsService
+from app.services.threat_catalog_service import ThreatCatalogService
+from app.services.vulnerability_mapping_service import VulnerabilityMappingService
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Rostelecom Threat Analytics Mock API",
-    version="1.0.0",
+    version="2.0.0",
     summary="Mock API for cyber threat prediction, threat registry and vulnerability mapping.",
     description=(
         "Mock API для MVP аналитического приложения: прогноз атаки, список угроз, "
         "рекомендации по защите и маппинг уязвимостей с базой угроз. "
         "Swagger доступен по /docs, OpenAPI JSON по /openapi.json."
     ),
-    contact={"name": "Project Team", "email": "hereIsNothing@maybeUseless"},
+    contact={"name": "Project Team", "email": "team@example.com"},
     license_info={"name": "MIPT"},
+    redoc_url=None,
 )
 
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(_, exc: RequestValidationError):
+    logger.warning("Validation error: %s", exc.errors())
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={
-            "detail": "Validation error",
-            "errors": exc.errors(),
-        },
+        content=ErrorResponse(detail="Validation error", errors=exc.errors()).model_dump(),
     )
 
 
 @app.get("/health", tags=["system"])
 def healthcheck():
+    logger.info("Healthcheck requested")
     return {"status": "ok"}
 
 
@@ -53,29 +69,28 @@ def healthcheck():
     responses={422: {"model": ErrorResponse}},
     summary="Получить mock-прогноз атаки",
 )
-def predict(payload: PredictRequest):
-    return generate_prediction(payload)
+def predict(
+    payload: PredictRequest,
+    service: PredictionService = Depends(get_prediction_service),
+):
+    logger.info("Prediction request received for organization_id=%s", payload.organization_id)
+    return service.predict(payload)
 
 
 @app.get(
     "/threats",
     tags=["threats"],
     response_model=ThreatListResponse,
+    responses={422: {"model": ErrorResponse}},
     summary="Список угроз из mock-реестра ФСТЭК",
 )
 def get_threats(
-    severity: str | None = Query(default=None, description="Фильтр по уровню severity"),
+    severity: Severity | None = Query(default=None, description="Фильтр по уровню severity"),
     category: str | None = Query(default=None, description="Фильтр по категории угрозы"),
+    service: ThreatCatalogService = Depends(get_threat_catalog_service),
 ):
-    response = list_threats()
-    items = response.items
-
-    if severity:
-        items = [item for item in items if item.severity.value == severity]
-    if category:
-        items = [item for item in items if item.category == category]
-
-    return {"total": len(items), "items": items}
+    logger.info("Threat list requested with severity=%s category=%s", severity, category)
+    return service.list_threats(ThreatFilter(severity=severity, category=category))
 
 
 @app.get(
@@ -84,8 +99,9 @@ def get_threats(
     response_model=ThreatStats,
     summary="Сводная mock-статистика по инцидентам",
 )
-def get_stats():
-    return build_stats()
+def get_stats(service: StatsService = Depends(get_stats_service)):
+    logger.info("Stats requested")
+    return service.build_stats()
 
 
 @app.post(
@@ -95,5 +111,9 @@ def get_stats():
     responses={422: {"model": ErrorResponse}},
     summary="Сопоставить уязвимости инфраструктуры с угрозами",
 )
-def map_vulnerabilities_to_threats(payload: VulnerabilityMapRequest):
-    return map_vulnerabilities(payload)
+def map_vulnerabilities_to_threats(
+    payload: VulnerabilityMapRequest,
+    service: VulnerabilityMappingService = Depends(get_vulnerability_mapping_service),
+):
+    logger.info("Vulnerability mapping requested for %s vulnerabilities", len(payload.vulnerabilities))
+    return service.map_vulnerabilities(payload)
