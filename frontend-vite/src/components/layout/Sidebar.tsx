@@ -13,8 +13,8 @@ import styles from "../../Styles/HomePage.module.css";
 const { Sider } = Layout;
 
 interface SidebarProps {
-    onMenuClick: (key: string) => void;     // ← добавили пропс
-    selectedKey: string;                    // ← чтобы подсвечивалась текущая страница
+    onMenuClick: (key: string) => void;
+    selectedKey: string;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onMenuClick, selectedKey }) => {

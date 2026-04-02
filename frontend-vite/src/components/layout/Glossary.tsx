@@ -14,7 +14,7 @@ const Glossary: React.FC = () => {
 
     const filteredTerms = terms.filter((term) => {
         const matchesSearch = term.title.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesLetter = term.letter === selectedLetter;
+        const matchesLetter = selectedLetter ? term.letter === selectedLetter : true;
 
         return matchesSearch && matchesLetter;
     });
@@ -50,14 +50,25 @@ const Glossary: React.FC = () => {
                     gap: 8,
                     marginBottom: 24,
                     flexWrap: 'wrap',
+                    alignItems: 'center',
                 }}
             >
+                <Button
+                    type="default"
+                    onClick={() => {
+                        setSearchTerm('');
+                        setSelectedLetter('');
+                    }}
+                    style={{fontWeight: 'bold'}}
+                >
+                    Показать все
+                </Button>
                 {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => (
                     <Button
                         key={letter}
                         type={letter === selectedLetter ? 'primary' : 'default'}
                         style={{width: 40}}
-                        onClick={() => setSelectedLetter(letter)} // 🔥 ВАЖНО
+                        onClick={() => setSelectedLetter(letter)}
                     >
                         {letter}
                     </Button>
