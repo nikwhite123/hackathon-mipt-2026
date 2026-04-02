@@ -27,7 +27,7 @@ body {
 }
 
 .sider {
-    height: 107vh;
+    height: 100vh;
     width: 250px;
     background: #001529;
     flex-shrink: 0;
