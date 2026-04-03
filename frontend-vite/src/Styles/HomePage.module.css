@@ -1,27 +1,27 @@
-body {
+/* body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #ffffff;
     color: #0f172a;
-}
+} */
 
-.page {
+/* .page {
     display: flex;
     min-height: 100vh;
 }
 
 .main {
     flex: 1;
-}
+} */
 
-.content {
+/* .content {
     padding: 24px;
     background-color: #f0f2f5;
     min-height: calc(100vh - 64px);
-}
+} */
 
-.sider {
+/* .sider {
     height: 100vh;
     width: 250px;
     background: #0b1f33;
@@ -97,7 +97,8 @@ body {
 
 .cardText {
     color: #94a3b8;
-}
+} */
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -108,38 +109,44 @@ body {
     border-bottom: 2px solid #ff4f00;
 }
 
-.brandlink {
+/* .brandlink {
     display: inline-flex;
     align-items: center;
     gap: 10px;
     color: #fff;
     text-decoration: none;
-}
-.brandmark {
+} */
+/* .brandmark {
     width: 18px;
     height: 18px;
     border-radius: 4px;
     background: linear-gradient(135deg, #ff6a2e, #ff4f00);
-}
-.brandtitle {
-    color: #fff !important;
-    font-size: 16px;
-    letter-spacing: .2px;
+} */
+
+.headerLeft {
+    flex: 0 0 auto;
 }
 
-.headerleft {
+
+.headerCenter {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+
+.headerRight {
+    flex: 0 0 auto;
+}
+
+
+.brandtitle {
     color: #fff;
     font-size: 18px;
     font-weight: bold;
 }
 
-.headerright {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.iconbutton {
+/* .iconbutton {
     background-color: #ffffff10;
     color: #fff;
     border: none;
@@ -233,4 +240,4 @@ body {
 
 .legend_value {
     font-weight: 500;
-}
+} */

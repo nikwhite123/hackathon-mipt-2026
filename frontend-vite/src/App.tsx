@@ -7,7 +7,7 @@ import SecurityAuditPage from "./pages/SecurityAuditPage"
 import RadarPage from "./pages/RadarPage"
 import AnalyticsDashboardPage from "./pages/AnalyticsDashboardPage"
 import NotFoundPage from "./pages/NotFoundPage"
-import Sidebar from "./components/layout/Sidebar"
+// import Sidebar from "./components/layout/Sidebar"
 import AppHeader from "./components/layout/Header"
 import GlossaryPage from "./pages/GlossaryPage"
 import SettingsPage from "./pages/SettingsPage"
@@ -16,7 +16,6 @@ function App() {
   return (
     <BrowserRouter>
       <Layout style={{ minHeight: "100vh" }}>
-        <Sidebar />
         <Layout>
           <AppHeader />
           <Layout.Content className="rt-content">
