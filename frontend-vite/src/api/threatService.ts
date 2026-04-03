@@ -1,5 +1,5 @@
-import axiosClient from './axiosClient';
-import { IThreatPrediction, IVulnerability, IProtectionStrategy } from '../types/incident.types';
+import axiosClient from './axiosClient'
+import type { IProtectionStrategy, IThreatPrediction, IVulnerability } from '../types/incident.types'
 
 export const threatService = {
     async getPredictions(): Promise<IThreatPrediction[]> {
@@ -16,4 +16,4 @@ export const threatService = {
         const { data } = await axiosClient.get<IProtectionStrategy[]>('/strategies');
         return data;
     }
-};
+}

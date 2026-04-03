@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { threatService } from '../../api/threatService';
-// import { IThreatPrediction } from '../../types/incident.types.ts';
 import { useAppContext } from "../../hooks/useAppContext";
 
 export const usePredictions = () => {

@@ -15,14 +15,6 @@ import { Card, Select, Typography, Space } from "antd";
 const { Title } = Typography;
 const { Option } = Select;
 
-// const heatmapData = [
-//     { day: "Mon", "0": 2, "1": 1, "2": 0, "3": 0, "4": 1, "5": 3 },
-//     { day: "Tue", "0": 1, "1": 2, "2": 1, "3": 0, "4": 1, "5": 2 },
-//     { day: "Wed", "0": 3, "1": 1, "2": 2, "3": 1, "4": 0, "5": 1 },
-//     { day: "Thu", "0": 2, "1": 2, "2": 1, "3": 2, "4": 1, "5": 2 },
-//     { day: "Fri", "0": 1, "1": 0, "2": 1, "3": 3, "4": 2, "5": 1 },
-// ];
-
 const objectDistribution = [
     { object: "Server", attacks: 45 },
     { object: "Application", attacks: 30 },

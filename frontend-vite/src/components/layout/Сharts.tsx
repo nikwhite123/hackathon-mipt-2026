@@ -9,7 +9,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// тут пока заглушка
 const data = [
   { date: "01.04", server: 0.7, application: 0.5, database: 0.2 },
   { date: "02.04", server: 0.6, application: 0.4, database: 0.3 },

@@ -6,10 +6,6 @@ body {
     color: #0f172a;
 }
 
-/** {*/
-/*    transition: all 0.2s ease-in-out;*/
-/*}*/
-
 .page {
     display: flex;
     min-height: 100vh;
@@ -17,7 +13,6 @@ body {
 
 .main {
     flex: 1;
-    /* padding: 40px; */
 }
 
 .content {
@@ -29,7 +24,7 @@ body {
 .sider {
     height: 100vh;
     width: 250px;
-    background: #001529;
+    background: #0b1f33;
     flex-shrink: 0;
     position: sticky;
     top: 0;
@@ -38,13 +33,12 @@ body {
 .logo {
     height: 64px;
     margin: 16px;
-    background: rgba(255, 255, 255, 0.2);
     color: #fff;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 18px;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 16px;
 }
 
 .hero {
@@ -104,14 +98,33 @@ body {
 .cardText {
     color: #94a3b8;
 }
-/* тут шапка */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #001529;
+    background: #0b1f33;
     padding: 0 24px;
     height: 80px;
+    border-bottom: 2px solid #ff4f00;
+}
+
+.brandlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    text-decoration: none;
+}
+.brandmark {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #ff6a2e, #ff4f00);
+}
+.brandtitle {
+    color: #fff !important;
+    font-size: 16px;
+    letter-spacing: .2px;
 }
 
 .headerleft {
@@ -130,6 +143,7 @@ body {
     background-color: #ffffff10;
     color: #fff;
     border: none;
+    padding: 0 8px;
 }
 
 .userblock {
@@ -137,6 +151,8 @@ body {
     align-items: center;
     gap: 8px;
     color: #fff;
+    padding: 2px 8px;
+    border-radius: 8px;
 }
 
 .username {
@@ -148,9 +164,8 @@ body {
 }
 
 .userblock:hover{
-    background-color: #2563eb;
+    background-color: #ffffff10;
 }
-/* тут дашборды */
 .dashboard {
     width: 100%;
 }

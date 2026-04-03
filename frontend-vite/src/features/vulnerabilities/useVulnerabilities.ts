@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { threatService } from '../../api/threatService';
 import { useAppContext } from "../../hooks/useAppContext";
-// import { IVulnerability } from '../../types/incident.types';
 
 export const useVulnerabilities = () => {
     const { vulnerabilities, setVulnerabilities } = useAppContext();
