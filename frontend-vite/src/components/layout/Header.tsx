@@ -74,7 +74,6 @@ const AppHeader: React.FC = () => {
 
   return (
     <Header className={styles.header}>
-      {/* LEFT */}
       <div className={styles.headerLeft}>
         <Link to="/" className={styles.brandlink}>
           <Typography.Text className={styles.brandtitle}>
@@ -83,18 +82,15 @@ const AppHeader: React.FC = () => {
         </Link>
       </div>
 
-      {/* CENTER */}
       <div className={styles.headerCenter}>
         <Menu
           mode="horizontal"
           selectedKeys={[selectedKey]}
           items={items}
-          // overflowedIndicator={null}
           style={{ borderBottom: "none",background: "transparent", display: "flex", justifyContent: "center", width: "100%", }}
         />
       </div>
 
-      {/* RIGHT (пусто пока) */}
       <div className={styles.headerRight} />
     </Header>
   );
