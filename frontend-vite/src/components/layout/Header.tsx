@@ -7,7 +7,7 @@ import {
   LineChartOutlined,
   SecurityScanOutlined,
   SettingOutlined,
-  RadarChartOutlined,
+  // RadarChartOutlined,
   ClusterOutlined,
 } from "@ant-design/icons";
 import { NavLink, useLocation, Link } from "react-router-dom";
@@ -40,21 +40,21 @@ const AppHeader: React.FC = () => {
       icon: <ClusterOutlined />,
       label: <NavLink to="/infrastructure">Инфраструктура</NavLink>,
     },
-    {
-      key: "early-warning",
-      icon: <SecurityScanOutlined />,
-      label: <NavLink to="/early-warning">Предупреждение</NavLink>,
-    },
+    // {
+    //   key: "early-warning",
+    //   icon: <SecurityScanOutlined />,
+    //   label: <NavLink to="/early-warning">Предупреждение</NavLink>,
+    // },
     {
       key: "security-audit",
       icon: <SecurityScanOutlined />,
       label: <NavLink to="/security-audit">Аудит</NavLink>,
     },
-    {
-      key: "radar",
-      icon: <RadarChartOutlined />,
-      label: <NavLink to="/radar">Радар</NavLink>,
-    },
+    // {
+    //   key: "radar",
+    //   icon: <RadarChartOutlined />,
+    //   label: <NavLink to="/radar">Радар</NavLink>,
+    // },
     {
       key: "analytics",
       icon: <LineChartOutlined />,

@@ -9,7 +9,9 @@ import {
 import { useOrgStore } from "../store/orgStore"
 import Page from "../ui/Page"
 import RTCard from "../ui/RTCard"
-import cls from "../Styles/rt.module.css"
+import style from "../Styles/HomePage.module.css"
+import RadarPage from "./RadarPage.tsx";
+import EarlyWarningPage from "./EarlyWarningPage.tsx";
 
 export default function InfrastructureAuditPage() {
   const [loading, setLoading] = useState(false)
@@ -28,36 +30,65 @@ export default function InfrastructureAuditPage() {
   }
 
   return (
-    <Page>
-      <RTCard>
-        <Form
-          form={form}
-          layout="vertical"
-          onValuesChange={(changed) => update(changed)}
-          onFinish={onSubmit}
-          initialValues={settings}
-        >
-          <div className={cls.filters}>
-            <Form.Item label="Регион" name="region" rules={[{ required: true }]}>
-              <Select options={REGION_OPTIONS} />
-            </Form.Item>
-            <Form.Item label="Тип предприятия" name="enterpriseType" rules={[{ required: true }]}>
-              <Select options={ENTERPRISE_TYPE_OPTIONS} />
-            </Form.Item>
-            <Form.Item label="Количество хостов" name="hosts" rules={[{ required: true }]}>
-              <InputNumber min={1} style={{ width: "100%" }} />
-            </Form.Item>
-            <div />
+      <Page>
+        <div className={style.infraAuditContainer}>
+          <div className={style.infraAuditMainContent}>
+            {/* Левая панель */}
+            <RTCard>   {/* ← оставил RTCard, как было в оригинале */}
+              <div className={style.infraAuditLeftPanelContent}>
+                <h2 className={style.infraAuditTitle}>Настройка инфраструктуры</h2>
+
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onValuesChange={(changed) => update(changed)}
+                    onFinish={onSubmit}
+                    initialValues={settings}
+                >
+                  <div className={style.infraAuditFilters}>
+                    <Form.Item label="Регион" name="region" rules={[{ required: true }]}>
+                      <Select options={REGION_OPTIONS} />
+                    </Form.Item>
+
+                    <Form.Item label="Тип предприятия" name="enterpriseType" rules={[{ required: true }]}>
+                      <Select options={ENTERPRISE_TYPE_OPTIONS} />
+                    </Form.Item>
+
+                    <Form.Item label="Количество хостов" name="hosts" rules={[{ required: true }]}>
+                      <InputNumber min={1} style={{ width: "100%" }} />
+                    </Form.Item>
+                  </div>
+
+                  <div className={style.infraAuditTechnologies}>
+                    <Form.Item
+                        label="Конструктор инфраструктуры"
+                        name="technologies"
+                        rules={[{ required: true }]}
+                    >
+                      <Checkbox.Group options={TECH_OPTIONS} />
+                    </Form.Item>
+                  </div>
+
+                  <div className={style.infraAuditButtonContainer}>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={loading}
+                        size="large"
+                        aria-label="Сохранить настройки организации"
+                    >
+                      Сохранить
+                    </Button>
+                  </div>
+                </Form>
+              </div>
+            </RTCard>
           </div>
-          <Form.Item label="Конструктор инфраструктуры" name="technologies" rules={[{ required: true }]}>
-            <Checkbox.Group options={TECH_OPTIONS} />
-          </Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading} aria-label="Сохранить настройки организации">
-            Сохранить
-          </Button>
-        </Form>
-      </RTCard>
-    </Page>
+          <div className={style.infraAuditRightColumn}>
+            <RadarPage />
+            <EarlyWarningPage />     {/* ← будет под RadarWidgets */}
+          </div>
+        </div>
+      </Page>
   )
 }
-

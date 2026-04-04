@@ -147,3 +147,161 @@
     min-height: 320px;
   }
 }
+
+/* ==================== Infrastructure Audit + Radar Right Column ==================== */
+
+.infraAuditContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  padding: 32px 24px;
+  box-sizing: border-box;
+}
+
+.infraAuditMainContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.infraAuditLeftPanelContent {
+  padding: 28px 32px;
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Правая колонка */
+.infraAuditRightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.infraAuditRiskBlock {
+  padding: 1px 0;
+}
+
+.infraAuditRiskRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.infraAuditSmallCard {
+  padding: 1px 24px;
+  height: 100%;
+}
+
+.infraAuditProgressWrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.infraAuditPillRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.infraAuditPillButton {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all .15s ease-in-out;
+  font-size: 13px;
+}
+
+.infraAuditPillButton:hover {
+  border-color: #3b82f6;
+  background: #f0f7ff;
+}
+
+/* Адаптив */
+@media (min-width: 1200px) {
+  .infraAuditContainer {
+    grid-template-columns: minmax(0, 560px) 1fr;   /* форма + правая колонка */
+  }
+
+  .infraAuditLeftPanelContent {
+    margin: 0;
+    max-width: none;
+  }
+}
+
+@media (max-width: 1199px) {
+  .infraAuditRiskRow {
+    grid-template-columns: 1fr;   /* на мобильных — один под одним */
+  }
+}
+
+/* ==================== Early Warning Page ==================== */
+
+.infraEarlyRow {
+  display: grid;
+  grid-template-columns: 1fr 1.65fr;
+  gap: 24px;
+}
+
+/* Делаем карточки одной высоты */
+.infraEarlyRow > div {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Левая карточка - время атаки */
+.infraEarlyProgressContainer {
+  margin-top: 20px;
+}
+
+/* Правая карточка - информация об угрозе */
+.infraEarlyContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+.infraEarlyStatsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: auto;           /* прижимает статистику вниз, если нужно */
+}
+
+/* Адаптивность */
+@media (max-width: 992px) {
+  .infraEarlyRow {
+    grid-template-columns: 1fr;   /* На мобильных и планшетах — одна под другой */
+    gap: 20px;
+  }
+}
+
+/* Опционально: улучшение вида карточек */
+.infraEarlyRow .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.infraEarlyRow .ant-statistic-title {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.infraEarlyRow .ant-statistic-content {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* Hover эффект для правой карточки */
+.infraEarlyRow .ant-card-hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+}

@@ -3,11 +3,8 @@ import { useEffect, useMemo, useState } from "react"
 import type { Region } from "../constants/org"
 import { REGIONS, REGION_TIMEZONE_OFFSET_HOURS } from "../constants/org"
 import { useOrgStore } from "../store/orgStore"
-import cn from "../utils/cn"
-import Page from "../ui/Page"
 import RTCard from "../ui/RTCard"
-import { Grid, GridItem } from "../ui/Grid"
-import cls from "../Styles/rt.module.css"
+import style from "../Styles/HomePage.module.css"
 
 export default function RadarPage() {
   const { settings, update } = useOrgStore()
@@ -37,52 +34,54 @@ export default function RadarPage() {
   }, [])
 
   return (
-    <Page>
-      <Grid>
-        <GridItem className={cls["col-4"]}>
-          <RTCard>
-            <Statistic title="Текущее региональное время" value={regionalTime} />
-            <div className={cn(cls.pillRow, cls.mt12)}>
-              {REGIONS.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => {
-                    setRegion(r)
-                    update({ region: r })
-                  }}
-                  className={cls.pillButton}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-          </RTCard>
-        </GridItem>
-        <GridItem className={cls["col-4"]}>
-          <RTCard>
+      <div className={style.infraAuditRightColumn}>
+        {/* Верхний блок: Низкий/Высокий риск */}
+        <RTCard>
+          <div className={style.infraAuditRiskBlock}>
+            {risk > 0.7 ? (
+                <>
+                  <Typography.Title level={5}>Высокий риск</Typography.Title>
+                  <Typography.Paragraph>Код угрозы: УБИ.021 — SQL Injection</Typography.Paragraph>
+                </>
+            ) : (
+                <>
+                  <Typography.Title level={5}>Низкий/умеренный риск</Typography.Title>
+                  <Typography.Paragraph>Система мониторинга активна. Аномалий не обнаружено.</Typography.Paragraph>
+                </>
+            )}
+          </div>
+        </RTCard>
+
+        {/* Два блока в ряд */}
+        <div className={style.infraAuditRiskRow}>
+          {/* Индекс риска */}
+          <RTCard className={style.infraAuditSmallCard}>
             <Typography.Text>Индекс риска</Typography.Text>
-            <div className={cls.mt12}>
+            <div className={style.infraAuditProgressWrapper}>
               <Progress type="dashboard" percent={Math.round(risk * 100)} />
             </div>
           </RTCard>
-        </GridItem>
-        <GridItem className={cls["col-4"]}>
-          <RTCard>
-            {risk > 0.7 ? (
-              <>
-                <Typography.Title level={5}>Высокий риск</Typography.Title>
-                <Typography.Paragraph>Код угрозы: УБИ.021 — SQL Injection</Typography.Paragraph>
-              </>
-            ) : (
-              <>
-                <Typography.Title level={5}>Низкий/умеренный риск</Typography.Title>
-                <Typography.Paragraph>Система мониторинга активна. Аномалий не обнаружено.</Typography.Paragraph>
-              </>
-            )}
+
+          {/* Текущее региональное время */}
+          <RTCard className={style.infraAuditSmallCard}>
+            <Statistic title="Текущее региональное время" value={regionalTime} />
+
+            <div className={style.infraAuditPillRow}>
+              {REGIONS.map((r) => (
+                  <button
+                      key={r}
+                      onClick={() => {
+                        setRegion(r)
+                        update({ region: r })
+                      }}
+                      className={style.infraAuditPillButton}
+                  >
+                    {r}
+                  </button>
+              ))}
+            </div>
           </RTCard>
-        </GridItem>
-      </Grid>
-    </Page>
+        </div>
+      </div>
   )
 }
-

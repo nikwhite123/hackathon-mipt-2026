@@ -4,6 +4,7 @@ import Page from "../ui/Page";
 
 const HomePage: React.FC = () => {
     return (
+
         <Page
             title="Дашборд"
             subtitle="Сводка по активности атак, аномалиям и распределению по объектам"

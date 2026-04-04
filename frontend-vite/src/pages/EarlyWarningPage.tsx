@@ -3,9 +3,7 @@ import { useEffect, useMemo, useState } from "react"
 import { fetchThreatForecast, type ThreatForecast } from "../api/riskService"
 import Page from "../ui/Page"
 import RTCard from "../ui/RTCard"
-import { Grid, GridItem } from "../ui/Grid"
-import cn from "../utils/cn"
-import cls from "../Styles/rt.module.css"
+import style from "../Styles/HomePage.module.css"
 
 export default function EarlyWarningPage() {
   const [visible, setVisible] = useState(false)
@@ -26,45 +24,60 @@ export default function EarlyWarningPage() {
   const progress = useMemo(() => Math.round((threat?.probability ?? 0) * 100), [threat])
 
   return (
-    <Page>
-      <Grid>
-        <GridItem className={cls["col-4"]}>
+      <Page>
+        {/* ← Вот это главный контейнер для горизонтального расположения */}
+        <div className={style.infraEarlyRow}>
+
+          {/* Левая карточка */}
           <RTCard>
-            <Statistic title="Ожидаемое время следующей атаки" value={threat?.etaMinutes ?? 0} suffix="мин" />
-            <div className={cn(cls.stack16, cls.mt12)}>
+            <Statistic
+                title="Ожидаемое время следующей атаки"
+                value={threat?.etaMinutes ?? 0}
+                suffix="мин"
+            />
+            <div className={style.infraEarlyProgressContainer}>
               <Progress percent={progress} status="active" />
             </div>
           </RTCard>
-        </GridItem>
-        <GridItem className={cls["col-8"]}>
-          <RTCard hoverable onClick={() => setVisible(true)} role="button" aria-label="Открыть рекомендацию" className={cls.clickable}>
-            <div className={cls.stack16}>
-              <Alert message="Цель" description={threat?.target ?? "—"} type="warning" showIcon />
-              <div className={cls.grid}>
-                <div className={cls["col-6"]}>
+
+          {/* Правая карточка */}
+          <RTCard
+              hoverable
+              onClick={() => setVisible(true)}
+              role="button"
+              aria-label="Открыть рекомендацию"
+          >
+            <div className={style.infraEarlyContent}>
+              <Alert
+                  message="Цель"
+                  description={threat?.target ?? "—"}
+                  type="warning"
+                  showIcon
+              />
+              <div className={style.infraEarlyStatsGrid}>
+                <div className={style.infraEarlyStatItem}>
                   <Statistic title="Вероятность" value={progress} suffix="%" />
                 </div>
-                <div className={cls["col-6"]}>
+                <div className={style.infraEarlyStatItem}>
                   <Statistic title="Метод атаки" value={threat?.method ?? "—"} />
                 </div>
               </div>
             </div>
           </RTCard>
-        </GridItem>
-      </Grid>
 
-      <Modal
-        open={visible}
-        onCancel={() => setVisible(false)}
-        onOk={() => setVisible(false)}
-        okText="Принять меру"
-        title="Рекомендация"
-      >
-        <Typography.Paragraph>
-          Примените протокол защиты №1. Усильте политику паролей и заблокируйте подозрительные IP.
-        </Typography.Paragraph>
-      </Modal>
-    </Page>
+        </div>
+
+        <Modal
+            open={visible}
+            onCancel={() => setVisible(false)}
+            onOk={() => setVisible(false)}
+            okText="Принять меру"
+            title="Рекомендация"
+        >
+          <Typography.Paragraph>
+            Примените протокол защиты №1. Усильте политику паролей и заблокируйте подозрительные IP.
+          </Typography.Paragraph>
+        </Modal>
+      </Page>
   )
 }
-
