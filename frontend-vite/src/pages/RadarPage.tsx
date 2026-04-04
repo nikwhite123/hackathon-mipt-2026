@@ -35,7 +35,6 @@ export default function RadarPage() {
 
   return (
       <div className={style.infraAuditRightColumn}>
-        {/* Верхний блок: Низкий/Высокий риск */}
         <RTCard>
           <div className={style.infraAuditRiskBlock}>
             {risk > 0.7 ? (
@@ -52,9 +51,7 @@ export default function RadarPage() {
           </div>
         </RTCard>
 
-        {/* Два блока в ряд */}
         <div className={style.infraAuditRiskRow}>
-          {/* Индекс риска */}
           <RTCard className={style.infraAuditSmallCard}>
             <Typography.Text>Индекс риска</Typography.Text>
             <div className={style.infraAuditProgressWrapper}>
@@ -62,7 +59,6 @@ export default function RadarPage() {
             </div>
           </RTCard>
 
-          {/* Текущее региональное время */}
           <RTCard className={style.infraAuditSmallCard}>
             <Statistic title="Текущее региональное время" value={regionalTime} />
 

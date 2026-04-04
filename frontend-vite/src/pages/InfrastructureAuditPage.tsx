@@ -33,8 +33,7 @@ export default function InfrastructureAuditPage() {
       <Page>
         <div className={style.infraAuditContainer}>
           <div className={style.infraAuditMainContent}>
-            {/* Левая панель */}
-            <RTCard>   {/* ← оставил RTCard, как было в оригинале */}
+            <RTCard>
               <div className={style.infraAuditLeftPanelContent}>
                 <h2 className={style.infraAuditTitle}>Настройка инфраструктуры</h2>
 
@@ -86,7 +85,7 @@ export default function InfrastructureAuditPage() {
           </div>
           <div className={style.infraAuditRightColumn}>
             <RadarPage />
-            <EarlyWarningPage />     {/* ← будет под RadarWidgets */}
+            <EarlyWarningPage />
           </div>
         </div>
       </Page>

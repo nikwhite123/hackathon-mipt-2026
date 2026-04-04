@@ -25,10 +25,8 @@ export default function EarlyWarningPage() {
 
   return (
       <Page>
-        {/* ← Вот это главный контейнер для горизонтального расположения */}
         <div className={style.infraEarlyRow}>
 
-          {/* Левая карточка */}
           <RTCard>
             <Statistic
                 title="Ожидаемое время следующей атаки"
@@ -40,7 +38,6 @@ export default function EarlyWarningPage() {
             </div>
           </RTCard>
 
-          {/* Правая карточка */}
           <RTCard
               hoverable
               onClick={() => setVisible(true)}
