@@ -60,7 +60,7 @@ export default function AnalyticsDashboardPage() {
   }, [season, tType])
 
   return (
-    <Page title="Аналитика" subtitle="Активность атак и распределение по объектам">
+    <Page>
       <div className={cls.stack16}>
       <RTCard>
         <div className={cls.filters}>

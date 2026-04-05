@@ -6,8 +6,6 @@ import {
   BookOutlined,
   LineChartOutlined,
   SecurityScanOutlined,
-  SettingOutlined,
-  // RadarChartOutlined,
   ClusterOutlined,
 } from "@ant-design/icons";
 import { NavLink, useLocation, Link } from "react-router-dom";
@@ -20,12 +18,9 @@ const AppHeader: React.FC = () => {
 
   const selectedKey = useMemo(() => {
     if (pathname.startsWith("/infrastructure")) return "infrastructure";
-    if (pathname.startsWith("/early-warning")) return "early-warning";
     if (pathname.startsWith("/security-audit")) return "security-audit";
-    if (pathname.startsWith("/radar")) return "radar";
     if (pathname.startsWith("/analytics")) return "analytics";
     if (pathname.startsWith("/glossary")) return "glossary";
-    if (pathname.startsWith("/settings")) return "settings";
     return "dashboard";
   }, [pathname]);
 
@@ -40,21 +35,11 @@ const AppHeader: React.FC = () => {
       icon: <ClusterOutlined />,
       label: <NavLink to="/infrastructure">Инфраструктура</NavLink>,
     },
-    // {
-    //   key: "early-warning",
-    //   icon: <SecurityScanOutlined />,
-    //   label: <NavLink to="/early-warning">Предупреждение</NavLink>,
-    // },
     {
       key: "security-audit",
       icon: <SecurityScanOutlined />,
       label: <NavLink to="/security-audit">Аудит</NavLink>,
     },
-    // {
-    //   key: "radar",
-    //   icon: <RadarChartOutlined />,
-    //   label: <NavLink to="/radar">Радар</NavLink>,
-    // },
     {
       key: "analytics",
       icon: <LineChartOutlined />,
@@ -64,11 +49,6 @@ const AppHeader: React.FC = () => {
       key: "glossary",
       icon: <BookOutlined />,
       label: <NavLink to="/glossary">Глоссарий</NavLink>,
-    },
-    {
-      key: "settings",
-      icon: <SettingOutlined />,
-      label: <NavLink to="/settings">Настройки</NavLink>,
     },
   ];
 
