@@ -11,11 +11,14 @@ const nodeEnv = getNodeEnv()
 export const backendEnabled =
 	Boolean(viteEnv?.VITE_BACKEND === 'true' || nodeEnv?.REACT_APP_BACKEND === 'true')
 
+const DEFAULT_API_URL = 'http://127.0.0.1:8000';
+
 export function getApiBaseUrl(): string {
 	return (
 		viteEnv?.VITE_API_URL ||
 		nodeEnv?.REACT_APP_API_URL ||
-		'http://localhost:8000/api'
+		DEFAULT_API_URL
 	)
 }
 
+export const API_BASE_URL = getApiBaseUrl();

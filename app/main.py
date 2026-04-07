@@ -3,9 +3,35 @@ from __future__ import annotations
 import logging
 
 from fastapi import Depends, FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette import status
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title="Rostelecom Threat Analytics Mock API",
+    version="2.1.0",
+    summary="Mock API for cyber threat prediction, threat registry and vulnerability mapping.",
+    description=(
+        "Mock API для MVP аналитического приложения: прогноз атаки, список угроз, "
+        "рекомендации по защите и маппинг уязвимостей с базой угроз. "
+        "Swagger доступен по /docs, OpenAPI JSON по /openapi.json."
+    ),
+    contact={"name": "Project Team", "email": "team@example.com"},
+    license_info={"name": "MIPT"},
+    redoc_url=None,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 from app.dependencies import (
     get_prediction_service,
@@ -28,28 +54,11 @@ from app.schemas import (
     VulnerabilityMapRequest,
     VulnerabilityMapResponse,
 )
+
 from app.services.prediction_service import PredictionService
 from app.services.stats_service import StatsService
 from app.services.threat_catalog_service import ThreatCatalogService
 from app.services.vulnerability_mapping_service import VulnerabilityMappingService
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
-logger = logging.getLogger(__name__)
-
-app = FastAPI(
-    title="Rostelecom Threat Analytics Mock API",
-    version="2.1.0",
-    summary="Mock API for cyber threat prediction, threat registry and vulnerability mapping.",
-    description=(
-        "Mock API для MVP аналитического приложения: прогноз атаки, список угроз, "
-        "рекомендации по защите и маппинг уязвимостей с базой угроз. "
-        "Swagger доступен по /docs, OpenAPI JSON по /openapi.json."
-    ),
-    contact={"name": "Project Team", "email": "team@example.com"},
-    license_info={"name": "MIPT"},
-    redoc_url=None,
-)
-
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(_, exc: RequestValidationError):

@@ -1,29 +1,15 @@
-import { Select } from "antd"
 import { Heatmap, Column } from "@ant-design/plots"
 import { useEffect, useState } from "react"
-import { fetchHeatmap, fetchDistribution } from "../api/analyticsService"
+import { fetchStats } from "../api/analyticsService"
 import Page from "../ui/Page"
 import RTCard from "../ui/RTCard"
 import { Grid, GridItem } from "../ui/Grid"
 import cls from "../Styles/rt.module.css"
 
-type Season = "all" | "winter" | "spring" | "summer" | "autumn"
-type ThreatType = "all" | "network" | "app" | "credentials"
-
-const seasons: { label: string; value: Season }[] = [
-  { label: "Все сезоны", value: "all" },
-  { label: "Зима", value: "winter" },
-  { label: "Весна", value: "spring" },
-  { label: "Лето", value: "summer" },
-  { label: "Осень", value: "autumn" }
-]
-
-const threatTypes: { label: string; value: ThreatType }[] = [
-  { label: "Все типы", value: "all" },
-  { label: "Сеть", value: "network" },
-  { label: "Приложения", value: "app" },
-  { label: "Учетные данные", value: "credentials" }
-]
+// Брендовые цвета Ростелекома
+const RT_ORANGE = '#FF4F12';
+const RT_PURPLE = '#7733FF';
+const RT_DARK = '#101828';
 
 function makeHeatmapData() {
   const days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
@@ -37,63 +23,95 @@ function makeHeatmapData() {
   return data
 }
 
-function makeDistributionData() {
-  const categories = ["Серверы", "Сегменты сети", "БД", "Веб‑узлы", "Рабочие места"]
-  return categories.map((c) => ({ category: c, count: Math.round(10 + Math.random() * 90) }))
-}
-
 export default function AnalyticsDashboardPage() {
-  const [season, setSeason] = useState<Season>("all")
-  const [tType, setTType] = useState<ThreatType>("all")
-
-  const [heatmapData, setHeatmapData] = useState<any[]>([])
-  const [distData, setDistData] = useState<any[]>([])
+  const [stats, setStats] = useState<any>(null);
+  const [distData, setDistData] = useState<{category: string, count: number}[]>([]);
 
   useEffect(() => {
-    const filters = { season, threatType: tType }
-    fetchHeatmap(filters)
-      .then((d) => setHeatmapData(d.length ? d : makeHeatmapData()))
-      .catch(() => setHeatmapData(makeHeatmapData()))
-    fetchDistribution(filters)
-      .then((d) => setDistData(d.length ? d : makeDistributionData()))
-      .catch(() => setDistData(makeDistributionData()))
-  }, [season, tType])
+    fetchStats().then((data) => {
+      setStats(data);
+      if (data && data.risk_distribution) {
+        const formattedDist = Object.entries(data.risk_distribution).map(([key, value]) => ({
+          category: key.toUpperCase(),
+          count: value as number
+        }));
+        setDistData(formattedDist);
+      }
+    }).catch(err => console.error("Ошибка загрузки статистики:", err));
+  }, []);
 
   return (
-    <Page>
-      <div className={cls.stack16}>
-      <RTCard>
-        <div className={cls.filters}>
-          <Select aria-label="Фильтр по сезону" value={season} onChange={setSeason} options={seasons} />
-          <Select aria-label="Фильтр по типу угроз" value={tType} onChange={setTType} options={threatTypes} />
+      <Page>
+        {/* Добавляем контейнер с padding-top, чтобы отодвинуть контент от Header */}
+        <div style={{ paddingTop: '24px' }}>
+          <div className={cls.stack16}>
+            <Grid>
+              <GridItem className={cls["col-4"]}>
+                <RTCard title="Всего инцидентов">
+                  {/* Используем фиолетовый для общего счетчика */}
+                  <h2 style={{ fontSize: '2.5rem', margin: 0, color: RT_PURPLE }}>
+                    {stats?.total_incidents || 0}
+                  </h2>
+                </RTCard>
+              </GridItem>
+              <GridItem className={cls["col-4"]}>
+                <RTCard title="Топ метод">
+                  {/* Используем оранжевый для акцента на методе */}
+                  <h2 style={{ color: RT_ORANGE, margin: 0, fontWeight: 'bold' }}>
+                    {stats?.top_attack_method?.toUpperCase() || '—'}
+                  </h2>
+                </RTCard>
+              </GridItem>
+              <GridItem className={cls["col-4"]}>
+                <RTCard title="Главная цель">
+                  <h2 style={{ color: RT_DARK, margin: 0 }}>
+                    {stats?.top_target_object?.toUpperCase() || '—'}
+                  </h2>
+                </RTCard>
+              </GridItem>
+            </Grid>
+
+            <Grid>
+              <GridItem className={cls["col-8"]}>
+                <RTCard title="Активность атак (Карта интенсивности)">
+                  <div style={{ height: 350 }}>
+                    <Heatmap
+                        data={makeHeatmapData()}
+                        xField="hour"
+                        yField="day"
+                        colorField="value"
+                        autoFit
+                        // Градиент от белого к фиолетовому (стиль РТ)
+                        color={['#ffffff', RT_PURPLE]}
+                    />
+                  </div>
+                </RTCard>
+              </GridItem>
+
+              <GridItem className={cls["col-4"]}>
+                <RTCard title="Распределение рисков">
+                  <div style={{ height: 350 }}>
+                    <Column
+                        data={distData}
+                        xField="category"
+                        yField="count"
+                        autoFit
+                        // Оранжевый для критических, фиолетовый для остальных
+                        color={({ category }: { category: string }) => {
+                          return (category === 'CRITICAL' || category === 'HIGH')
+                              ? RT_ORANGE
+                              : RT_PURPLE;
+                        }}
+                        columnStyle={{
+                          radius: [4, 4, 0, 0] // Слегка скругляем верхушки
+                        }}
+                    />
+                  </div>
+                </RTCard>
+              </GridItem>
+            </Grid>
+          </div>
         </div>
-      </RTCard>
-      <Grid>
-        <GridItem className={cls["col-8"]}>
-          <RTCard title="Активность атак по времени (Heatmap)">
-            <div className={cls.chartBox}>
-              <Heatmap
-                data={heatmapData}
-                xField="hour"
-                yField="day"
-                colorField="value"
-                autoFit
-                shape="square"
-                meta={{ value: { type: "linear", min: 0, max: 100 } }}
-              />
-            </div>
-          </RTCard>
-        </GridItem>
-        <GridItem className={cls["col-4"]}>
-          <RTCard title="Распределение атак по объектам воздействия">
-            <div className={cls.chartBox}>
-              <Column data={distData} xField="category" yField="count" autoFit />
-            </div>
-          </RTCard>
-        </GridItem>
-      </Grid>
-      </div>
-    </Page>
+      </Page>
   )
 }
-
