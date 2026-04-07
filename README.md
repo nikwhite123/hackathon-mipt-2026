@@ -35,3 +35,28 @@
 3.  **Синхронизация:** Перед началом работы делайте `git pull`, чтобы не ловить конфликты в конце дня.
 
 ---
+
+Готовый mock API для задачи.
+
+Что внутри:
+- `POST /predict` - mock-прогноз атаки
+- `GET /threats` - список угроз из mock-реестра ФСТЭК
+- `GET /stats` - агрегированная статистика по инцидентам
+- `POST /vulnerabilities/map` - маппинг уязвимостей инфраструктуры на угрозы
+- `GET /health` - healthcheck
+
+## Запуск
+
+```bash
+python -m venv .venv  
+source .venv/bin/activate # Linux  
+.venv\Scripts\Activate.ps1 # Windows  
+pip install -r requirements.txt  
+uvicorn app.main:app --reload  
+```
+
+## Swagger
+
+После запуска:
+- Swagger UI: `http://127.0.0.1:8000/docs`
+- OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`

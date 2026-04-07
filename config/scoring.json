@@ -1,0 +1,10 @@
+{
+  "base_risk": 0.25,
+  "external_access_weight": 0.15,
+  "known_vulnerabilities_weight": 0.2,
+  "privileged_accounts_weight": 0.1,
+  "peak_hours_weight": 0.1,
+  "peak_hours": [8, 9, 10, 18, 19, 20],
+  "confidence_base": 0.55,
+  "confidence_multiplier": 0.5
+}
