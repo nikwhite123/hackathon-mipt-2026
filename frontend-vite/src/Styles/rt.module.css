@@ -1,0 +1,162 @@
+.page {
+  display: block;
+}
+.pageHeader {
+  margin-bottom: 24px;
+}
+.pageTitle {
+  margin: 0 0 4px 0;
+  letter-spacing: 0.2px;
+}
+.pageSubtitle {
+  margin: 0;
+  color: #6b7280;
+}
+.pageBody {
+  display: block;
+}
+
+.contentOuter {
+  background: #F8F9FB;
+  min-height: 100%;
+}
+.contentInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 32px;
+}
+@media (min-width: 1280px) {
+  .contentInner {
+    padding: 40px 48px;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+.gridItem {
+  grid-column: span 12;
+  min-width: 0;
+}
+@media (min-width: 768px) {
+  .col-4 { grid-column: span 4; }
+  .col-6 { grid-column: span 6; }
+  .col-8 { grid-column: span 8; }
+  .col-12 { grid-column: span 12; }
+}
+
+.card {
+  border-radius: 10px;
+  border: 1px solid #e2e5eb !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+.chartBox {
+  min-height: 280px;
+  min-width: 0;
+  width: 100%;
+  position: relative;
+}
+.chartBoxLg {
+  min-height: 300px;
+  min-width: 0;
+  width: 100%;
+  flex: 1 1 auto;
+  position: relative;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #ffffff;
+  border: 1px solid #e2e5eb;
+  border-radius: 12px;
+  padding: 16px 16px 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+.panelHeader {
+  font-weight: 600;
+  color: #1A1A1A;
+  margin: 0 0 12px 0;
+  letter-spacing: .2px;
+  flex-shrink: 0;
+}
+.kpiRow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.kpiBox {
+  background: #F8F9FB;
+  border-radius: 10px;
+  padding: 17px 14px;
+  min-width: 0;
+}
+.kpiLabel {
+  color: #626C77;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.kpiValue {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.sparkline {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 6px;
+}
+
+.stack16 {
+  display: grid;
+  gap: 16px;
+}
+.stack12 {
+  display: grid;
+  gap: 12px;
+}
+.mt12 { margin-top: 12px; }
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+.filters > * {
+  grid-column: span 12;
+}
+@media (min-width: 768px) {
+  .filters > * {
+    grid-column: span 3;
+  }
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.pillRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pillButton {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all .15s ease-in-out;
+}
+.pillButton:hover {
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
