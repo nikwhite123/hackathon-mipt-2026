@@ -58,6 +58,35 @@ class PredictRequest(BaseModel):
     known_vulnerabilities_count: int = Field(..., ge=0, examples=[3])
 
 
+class PredictTimeResponse(BaseModel):
+    generated_at: datetime
+    predicted_attack_time_window: str
+    confidence: float = Field(..., ge=0, le=1)
+    rationale: List[str]
+
+
+class PredictTargetResponse(BaseModel):
+    generated_at: datetime
+    predicted_target_object: TargetType
+    confidence: float = Field(..., ge=0, le=1)
+    rationale: List[str]
+
+
+class PredictMethodResponse(BaseModel):
+    generated_at: datetime
+    predicted_attack_method: ThreatMethod
+    confidence: float = Field(..., ge=0, le=1)
+    rationale: List[str]
+
+
+class PredictRecommendationsResponse(BaseModel):
+    generated_at: datetime
+    predicted_attack_method: ThreatMethod
+    predicted_target_object: TargetType
+    recommendations: List[ProtectionRecommendation]
+    confidence: float = Field(..., ge=0, le=1)
+
+
 class PredictResponse(BaseModel):
     generated_at: datetime
     risk_score: float = Field(..., ge=0, le=1)

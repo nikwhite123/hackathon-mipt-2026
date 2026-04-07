@@ -1,9 +1,16 @@
 from __future__ import annotations
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 from app.processors.scoring import ThreatScoringProcessor
-from app.schemas import PredictRequest, PredictResponse
+from app.schemas import (
+    PredictMethodResponse,
+    PredictRecommendationsResponse,
+    PredictRequest,
+    PredictResponse,
+    PredictTargetResponse,
+    PredictTimeResponse,
+)
 from app.services.threat_catalog_service import ThreatCatalogService
 
 
@@ -13,21 +20,62 @@ class PredictionService:
         self.threat_catalog_service = threat_catalog_service
 
     def predict(self, payload: PredictRequest) -> PredictResponse:
+        prediction_context = self._build_prediction_context(payload)
+        return PredictResponse(**prediction_context)
+
+    def predict_time(self, payload: PredictRequest) -> PredictTimeResponse:
+        prediction_context = self._build_prediction_context(payload)
+        return PredictTimeResponse(
+            generated_at=prediction_context["generated_at"],
+            predicted_attack_time_window=prediction_context["predicted_attack_time_window"],
+            confidence=prediction_context["confidence"],
+            rationale=prediction_context["rationale"],
+        )
+
+    def predict_target(self, payload: PredictRequest) -> PredictTargetResponse:
+        prediction_context = self._build_prediction_context(payload)
+        return PredictTargetResponse(
+            generated_at=prediction_context["generated_at"],
+            predicted_target_object=prediction_context["predicted_target_object"],
+            confidence=prediction_context["confidence"],
+            rationale=prediction_context["rationale"],
+        )
+
+    def predict_method(self, payload: PredictRequest) -> PredictMethodResponse:
+        prediction_context = self._build_prediction_context(payload)
+        return PredictMethodResponse(
+            generated_at=prediction_context["generated_at"],
+            predicted_attack_method=prediction_context["predicted_attack_method"],
+            confidence=prediction_context["confidence"],
+            rationale=prediction_context["rationale"],
+        )
+
+    def get_recommendations(self, payload: PredictRequest) -> PredictRecommendationsResponse:
+        prediction_context = self._build_prediction_context(payload)
+        return PredictRecommendationsResponse(
+            generated_at=prediction_context["generated_at"],
+            predicted_attack_method=prediction_context["predicted_attack_method"],
+            predicted_target_object=prediction_context["predicted_target_object"],
+            recommendations=prediction_context["recommendations"],
+            confidence=prediction_context["confidence"],
+        )
+
+    def _build_prediction_context(self, payload: PredictRequest) -> dict:
         scoring = self.scoring_processor.score(payload)
         target = payload.asset_type
         method = self._detect_attack_method(target)
         recommendations = self.threat_catalog_service.get_recommendations(method)
 
-        return PredictResponse(
-            generated_at=datetime.now(UTC),
-            risk_score=scoring.risk_score,
-            predicted_attack_time_window=self._detect_time_bucket(payload.hour),
-            predicted_target_object=target,
-            predicted_attack_method=method,
-            confidence=scoring.confidence,
-            recommendations=recommendations,
-            rationale=scoring.rationale,
-        )
+        return {
+            "generated_at": datetime.now(UTC),
+            "risk_score": scoring.risk_score,
+            "predicted_attack_time_window": self._detect_time_bucket(payload.hour),
+            "predicted_target_object": target,
+            "predicted_attack_method": method,
+            "confidence": scoring.confidence,
+            "recommendations": recommendations,
+            "rationale": scoring.rationale,
+        }
 
     @staticmethod
     def _detect_time_bucket(hour: int) -> str:

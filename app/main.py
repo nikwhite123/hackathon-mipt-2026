@@ -15,8 +15,12 @@ from app.dependencies import (
 )
 from app.schemas import (
     ErrorResponse,
+    PredictMethodResponse,
+    PredictRecommendationsResponse,
     PredictRequest,
     PredictResponse,
+    PredictTargetResponse,
+    PredictTimeResponse,
     Severity,
     ThreatFilter,
     ThreatListResponse,
@@ -34,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Rostelecom Threat Analytics Mock API",
-    version="2.0.0",
+    version="2.1.0",
     summary="Mock API for cyber threat prediction, threat registry and vulnerability mapping.",
     description=(
         "Mock API для MVP аналитического приложения: прогноз атаки, список угроз, "
@@ -67,7 +71,7 @@ def healthcheck():
     tags=["prediction"],
     response_model=PredictResponse,
     responses={422: {"model": ErrorResponse}},
-    summary="Получить mock-прогноз атаки",
+    summary="Получить полный mock-прогноз атаки",
 )
 def predict(
     payload: PredictRequest,
@@ -75,6 +79,66 @@ def predict(
 ):
     logger.info("Prediction request received for organization_id=%s", payload.organization_id)
     return service.predict(payload)
+
+
+@app.post(
+    "/predict/time",
+    tags=["prediction"],
+    response_model=PredictTimeResponse,
+    responses={422: {"model": ErrorResponse}},
+    summary="Спрогнозировать временное окно атаки",
+)
+def predict_time(
+    payload: PredictRequest,
+    service: PredictionService = Depends(get_prediction_service),
+):
+    logger.info("Time prediction requested for organization_id=%s", payload.organization_id)
+    return service.predict_time(payload)
+
+
+@app.post(
+    "/predict/target",
+    tags=["prediction"],
+    response_model=PredictTargetResponse,
+    responses={422: {"model": ErrorResponse}},
+    summary="Спрогнозировать объект атаки",
+)
+def predict_target(
+    payload: PredictRequest,
+    service: PredictionService = Depends(get_prediction_service),
+):
+    logger.info("Target prediction requested for organization_id=%s", payload.organization_id)
+    return service.predict_target(payload)
+
+
+@app.post(
+    "/predict/method",
+    tags=["prediction"],
+    response_model=PredictMethodResponse,
+    responses={422: {"model": ErrorResponse}},
+    summary="Спрогнозировать метод атаки",
+)
+def predict_method(
+    payload: PredictRequest,
+    service: PredictionService = Depends(get_prediction_service),
+):
+    logger.info("Method prediction requested for organization_id=%s", payload.organization_id)
+    return service.predict_method(payload)
+
+
+@app.post(
+    "/predict/recommendations",
+    tags=["prediction"],
+    response_model=PredictRecommendationsResponse,
+    responses={422: {"model": ErrorResponse}},
+    summary="Получить рекомендации по защите на основе спрогнозированной угрозы",
+)
+def predict_recommendations(
+    payload: PredictRequest,
+    service: PredictionService = Depends(get_prediction_service),
+):
+    logger.info("Recommendations request received for organization_id=%s", payload.organization_id)
+    return service.get_recommendations(payload)
 
 
 @app.get(
