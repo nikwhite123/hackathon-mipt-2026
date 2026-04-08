@@ -1,52 +1,79 @@
-import { Table, Tag } from "antd"
+import { Table, Tag, Space, Typography, Badge } from "antd"
+import { useEffect, useState } from "react"
+import { threatService } from "../api/threatService"
 import Page from "../ui/Page"
 import RTCard from "../ui/RTCard"
 
-type Vulnerability = {
-  id: string
-  title: string
-  severity: "low" | "medium" | "high" | "critical"
-  component: string
-  fstekCode: string
-}
-
-const data: Vulnerability[] = [
-  { id: "V-001", title: "Слабый пароль администратора", severity: "high", component: "CRM", fstekCode: "УБИ.001" },
-  { id: "V-002", title: "Неправильные ACL в сети", severity: "medium", component: "Сеть", fstekCode: "УБИ.013" },
-  { id: "V-003", title: "Открытый SQL-порт", severity: "critical", component: "БД", fstekCode: "УБИ.021" }
-]
+const { Text } = Typography;
+const RT_ORANGE = '#FF4F12';
+const RT_PURPLE = '#7733FF';
 
 export default function SecurityAuditPage() {
+  const [mapData, setMapData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    threatService.getVulnerabilityMap()
+      .then(data => {
+        setMapData(data.items); // Берем items из твоего JSON
+      })
+      .catch(err => console.error("Ошибка карты:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const columns = [
+    { 
+      title: "Ассет (Инфраструктура)", 
+      dataIndex: "asset_name", 
+      key: "asset_name",
+      render: (name: string) => <Text strong>{name.toUpperCase()}</Text>
+    },
+    { 
+      title: "Код уязвимости", 
+      dataIndex: "vulnerability_code", 
+      key: "vulnerability_code",
+      render: (code: string) => <Tag color="volcano">{code}</Tag>
+    },
+    { 
+      title: "Связанные угрозы", 
+      key: "matches_count",
+      render: (_, record: any) => (
+        <Space>
+          <Badge count={record.matches.length} style={{ backgroundColor: RT_PURPLE }} />
+          <Text type="secondary">угроз(ы) обнаружено</Text>
+        </Space>
+      )
+    }
+  ];
+
   return (
     <Page>
-      <RTCard>
-        <Table
-          rowKey="id"
-          dataSource={data}
-          pagination={false}
-          columns={[
-            { title: "ID", dataIndex: "id", width: 100 },
-            { title: "Описание", dataIndex: "title" },
-            { title: "Компонент", dataIndex: "component", width: 160 },
-            {
-              title: "Код ФСТЭК",
-              dataIndex: "fstekCode",
-              width: 140,
-              render: (v: string) => <Tag color="blue">{v}</Tag>
-            },
-            {
-              title: "Критичность",
-              dataIndex: "severity",
-              width: 140,
-              render: (s: Vulnerability["severity"]) => {
-                const map: Record<string, string> = { low: "default", medium: "processing", high: "warning", critical: "error" }
-                return <Tag color={map[s]}>{s}</Tag>
-              }
-            }
-          ]}
-        />
-      </RTCard>
+      <div style={{ paddingTop: '34px', paddingLeft: '34px', paddingRight: '34px' }}>
+        <RTCard title="Карта соответствия уязвимостей и угроз">
+          <Table
+            loading={loading}
+            dataSource={mapData}
+            columns={columns}
+            rowKey={(record) => record.asset_id + record.vulnerability_code}
+            expandable={{
+              expandedRowRender: (record) => (
+                <div style={{ padding: '10px 24px', background: '#fdfdfd', border: '1px dashed #d9d9d9', borderRadius: '8px' }}>
+                  <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                    Детальный анализ угроз для уязвимости {record.vulnerability_code}:
+                  </Text>
+                  {record.matches.map((m: any, i: number) => (
+                    <div key={i} style={{ marginBottom: 12 }}>
+                      <Tag color="orange">{m.threat_id || `ID-${i}`}</Tag>
+                      <Text strong>{m.name}</Text>
+                      <p style={{ fontSize: '12px', color: '#666', margin: '4px 0 0 0' }}>{m.description}</p>
+                    </div>
+                  ))}
+                </div>
+              ),
+            }}
+          />
+        </RTCard>
+      </div>
     </Page>
   )
 }
-

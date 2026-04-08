@@ -6,7 +6,6 @@ import RTCard from "../ui/RTCard"
 import { Grid, GridItem } from "../ui/Grid"
 import cls from "../Styles/rt.module.css"
 
-// Брендовые цвета Ростелекома
 const RT_ORANGE = '#FF4F12';
 const RT_PURPLE = '#7733FF';
 const RT_DARK = '#101828';
@@ -42,13 +41,11 @@ export default function AnalyticsDashboardPage() {
 
   return (
       <Page>
-        {/* Добавляем контейнер с padding-top, чтобы отодвинуть контент от Header */}
-        <div style={{ paddingTop: '24px' }}>
+        <div style={{ paddingTop: '34px', paddingLeft: '34px', paddingRight: '34px' }}>
           <div className={cls.stack16}>
             <Grid>
               <GridItem className={cls["col-4"]}>
                 <RTCard title="Всего инцидентов">
-                  {/* Используем фиолетовый для общего счетчика */}
                   <h2 style={{ fontSize: '2.5rem', margin: 0, color: RT_PURPLE }}>
                     {stats?.total_incidents || 0}
                   </h2>
@@ -56,15 +53,14 @@ export default function AnalyticsDashboardPage() {
               </GridItem>
               <GridItem className={cls["col-4"]}>
                 <RTCard title="Топ метод">
-                  {/* Используем оранжевый для акцента на методе */}
-                  <h2 style={{ color: RT_ORANGE, margin: 0, fontWeight: 'bold' }}>
+                  <h2 style={{ color: RT_ORANGE,fontSize: '2.5rem', margin: 0, fontWeight: 'bold' }}>
                     {stats?.top_attack_method?.toUpperCase() || '—'}
                   </h2>
                 </RTCard>
               </GridItem>
               <GridItem className={cls["col-4"]}>
                 <RTCard title="Главная цель">
-                  <h2 style={{ color: RT_DARK, margin: 0 }}>
+                  <h2 style={{ color: RT_DARK, fontSize: '2.5rem', margin: 0 }}>
                     {stats?.top_target_object?.toUpperCase() || '—'}
                   </h2>
                 </RTCard>
@@ -81,7 +77,6 @@ export default function AnalyticsDashboardPage() {
                         yField="day"
                         colorField="value"
                         autoFit
-                        // Градиент от белого к фиолетовому (стиль РТ)
                         color={['#ffffff', RT_PURPLE]}
                     />
                   </div>
@@ -96,14 +91,13 @@ export default function AnalyticsDashboardPage() {
                         xField="category"
                         yField="count"
                         autoFit
-                        // Оранжевый для критических, фиолетовый для остальных
                         color={({ category }: { category: string }) => {
                           return (category === 'CRITICAL' || category === 'HIGH')
                               ? RT_ORANGE
                               : RT_PURPLE;
                         }}
                         columnStyle={{
-                          radius: [4, 4, 0, 0] // Слегка скругляем верхушки
+                          radius: [4, 4, 0, 0]
                         }}
                     />
                   </div>

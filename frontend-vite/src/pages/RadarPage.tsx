@@ -55,7 +55,7 @@ export default function RadarPage() {
           <RTCard className={style.infraAuditSmallCard}>
             <Typography.Text>Индекс риска</Typography.Text>
             <div className={style.infraAuditProgressWrapper}>
-              <Progress type="dashboard" percent={Math.round(risk * 100)} />
+              <Progress type="dashboard" percent={Math.round(risk * 100)} strokeColor={risk > 0.7 ? '#FF4F12' : '#7733FF'} />
             </div>
           </RTCard>
 
