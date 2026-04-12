@@ -45,7 +45,7 @@
 - `POST /vulnerabilities/map` - маппинг уязвимостей инфраструктуры на угрозы
 - `GET /health` - healthcheck
 
-## Запуск
+## Запуск backend
 
 ```bash
 python -m venv .venv  
@@ -60,3 +60,11 @@ uvicorn app.main:app --reload
 После запуска:
 - Swagger UI: `http://127.0.0.1:8000/docs`
 - OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
+
+## Запуск frontend
+
+```bash
+cd frontend-vite
+npm install
+npm run dev
+```

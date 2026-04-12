@@ -10,15 +10,21 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 
 def _locate_data_file(filename: str) -> Path:
     candidates = [
+        BASE_DIR / 'data' / filename,
         BASE_DIR / filename,
         BASE_DIR.parent / filename,
         BASE_DIR.parent.parent / filename,
         Path('/mnt/data') / filename,
-    ]
+        ]
+
     for candidate in candidates:
-        if candidate.exists():
-            return candidate
-    return candidates[-1]
+        try:
+            if candidate.exists():
+                return candidate
+        except Exception:
+            continue
+
+    return candidates[0]
 
 
 INCIDENTS_PATH = _locate_data_file('incidents_2000.xlsx')

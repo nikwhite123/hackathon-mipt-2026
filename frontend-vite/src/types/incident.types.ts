@@ -33,18 +33,19 @@ export interface IProtectionStrategy {
 }
 
 export interface IRecommendation {
-  code: string;
-  title: string;
-  description: string;
-  priority: number;
+    code: string;
+    title: string;
+    description: string;
+    priority: number;
 }
 
 export interface IPredictionResponse {
-  risk_score: number;
-  predicted_attack_time_window: string;
-  predicted_target_object: string;
-  predicted_attack_method: string;
-  confidence: number;
-  recommendations: IRecommendation[];
-  rationale: string[];
+    generated_at: string;
+    risk_score: number;
+    predicted_attack_time_window: string;
+    predicted_target_object: string;
+    predicted_attack_method: string;
+    confidence: number;
+    recommendations: IRecommendation[];
+    rationale: string[];
 }

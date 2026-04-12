@@ -1,4 +1,5 @@
 import axiosClient from './axiosClient'
+import type { IPredictionResponse } from '../types/incident.types';
 // import { backendEnabled } from './config'
 
 export type ThreatForecast = {
@@ -10,21 +11,21 @@ export type ThreatForecast = {
 }
 
 const mockOrgData = {
-  organization_id: "org-001",
-  region: "Moscow",
-  industry: "telecom",
-  season: "winter",
-  day_of_week: 1,
-  hour: 23,
-  asset_type: "crm",
-  has_external_access: true,
-  privileged_accounts_count: 12,
-  known_vulnerabilities_count: 3
+    organization_id: "org-001",
+    region: "Moscow",
+    industry: "telecom",
+    season: "winter",
+    day_of_week: 1,
+    hour: 23,
+    asset_type: "crm",
+    has_external_access: true,
+    privileged_accounts_count: 12,
+    known_vulnerabilities_count: 3
 };
 
-export const fetchThreatForecast = async () => {
-  const { data } = await axiosClient.post('/predict', mockOrgData);
-  return data;
+export const fetchThreatForecast = async (): Promise<IPredictionResponse> => {
+    const { data } = await axiosClient.post('/predict', mockOrgData);
+    return data;
 };
 
 // export async function fetchThreatForecast(): Promise<ThreatForecast> {
