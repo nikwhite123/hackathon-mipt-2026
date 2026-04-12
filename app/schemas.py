@@ -110,6 +110,9 @@ class ThreatStats(BaseModel):
     risk_distribution: Dict[str, int]
     incidents_by_season: Dict[str, int]
     incidents_by_time_of_day: Dict[str, int]
+    incidents_by_hour: Dict[int, int]
+    incidents_by_region: Dict[str, int]
+    incidents_by_target_object: Dict[str, int]
 
 
 class InfrastructureVulnerability(BaseModel):
@@ -165,20 +168,19 @@ class RuleConfig(BaseModel):
 
 
 class ScoringConfig(BaseModel):
-    base_risk: float = Field(..., ge=0, le=1)
-    external_access_weight: float = Field(..., ge=0, le=1)
-    known_vulnerabilities_weight: float = Field(..., ge=0, le=1)
-    privileged_accounts_weight: float = Field(..., ge=0, le=1)
-    peak_hours_weight: float = Field(..., ge=0, le=1)
-    peak_hours: List[int]
+    vulnerability_count_weight: float = Field(..., gt=0)
+    attack_intensity_weight: float = Field(..., gt=0)
+    asset_criticality_weight: float = Field(..., gt=0)
+    risk_score_normalizer: float = Field(..., gt=0)
     confidence_base: float = Field(..., ge=0, le=1)
     confidence_multiplier: float = Field(..., ge=0, le=1)
+    asset_criticality_by_target: Dict[TargetType, float]
 
-    @field_validator("peak_hours")
+    @field_validator('asset_criticality_by_target')
     @classmethod
-    def validate_peak_hours(cls, value: List[int]) -> List[int]:
-        if any(hour < 0 or hour > 23 for hour in value):
-            raise ValueError("peak_hours must contain values from 0 to 23")
+    def validate_asset_criticality(cls, value: Dict[TargetType, float]) -> Dict[TargetType, float]:
+        if any(score < 0 for score in value.values()):
+            raise ValueError('asset criticality values must be non-negative')
         return value
 
 

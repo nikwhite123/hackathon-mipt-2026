@@ -1,15 +1,13 @@
 from __future__ import annotations
 
+from app.repositories.data_repository import DataRepository
 from app.schemas import ThreatStats
+from app.services.analytics_service import AnalyticsService
 
 
 class StatsService:
+    def __init__(self, repository: DataRepository):
+        self.analytics_service = AnalyticsService(repository)
+
     def build_stats(self) -> ThreatStats:
-        return ThreatStats(
-            total_incidents=2000,
-            top_attack_method="phishing",
-            top_target_object="crm",
-            risk_distribution={"low": 180, "medium": 950, "high": 620, "critical": 250},
-            incidents_by_season={"winter": 430, "spring": 510, "summer": 470, "autumn": 590},
-            incidents_by_time_of_day={"night": 280, "morning": 620, "afternoon": 540, "evening": 560},
-        )
+        return self.analytics_service.build_stats()

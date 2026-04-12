@@ -4,8 +4,10 @@ from functools import lru_cache
 
 from app.processors.scoring import ThreatScoringProcessor
 from app.repositories.config_repository import get_config_repository
+from app.repositories.data_repository import get_data_repository
 from app.schemas import RuleConfig
 from app.services.prediction_service import PredictionService
+from app.services.risk_context_service import RiskContextService
 from app.services.stats_service import StatsService
 from app.services.threat_catalog_service import ThreatCatalogService
 from app.services.vulnerability_mapping_service import VulnerabilityMappingService
@@ -18,15 +20,20 @@ def get_threat_catalog_service() -> ThreatCatalogService:
 
 
 @lru_cache(maxsize=1)
+def get_risk_context_service() -> RiskContextService:
+    return RiskContextService(get_data_repository())
+
+
+@lru_cache(maxsize=1)
 def get_prediction_service() -> PredictionService:
     repository = get_config_repository()
-    scoring_processor = ThreatScoringProcessor(repository.load_scoring_config())
+    scoring_processor = ThreatScoringProcessor(repository.load_scoring_config(), get_risk_context_service())
     return PredictionService(scoring_processor, get_threat_catalog_service())
 
 
 @lru_cache(maxsize=1)
 def get_stats_service() -> StatsService:
-    return StatsService()
+    return StatsService(get_data_repository())
 
 
 @lru_cache(maxsize=1)
