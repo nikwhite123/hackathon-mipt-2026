@@ -1,0 +1,17 @@
+{
+  "vulnerability_count_weight": 1.2,
+  "attack_intensity_weight": 2.4,
+  "asset_criticality_weight": 2.0,
+  "risk_score_normalizer": 10.0,
+  "confidence_base": 0.55,
+  "confidence_multiplier": 0.4,
+  "asset_criticality_by_target": {
+    "crm": 1.6,
+    "web_portal": 1.2,
+    "db_server": 1.8,
+    "file_server": 1.5,
+    "mail_gateway": 1.3,
+    "vpn_gateway": 1.7,
+    "workstation": 0.9
+  }
+}

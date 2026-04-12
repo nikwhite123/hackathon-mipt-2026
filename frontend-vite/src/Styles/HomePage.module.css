@@ -1,0 +1,295 @@
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0b1f33;
+    padding: 0 24px;
+    height: 80px;
+    border-bottom: 2px solid #ff4f00;
+}
+
+.headerLeft {
+    flex: 0 0 auto;
+}
+
+
+.headerCenter {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+
+.headerRight {
+    flex: 0 0 auto;
+}
+
+
+.brandtitle {
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.page {
+  padding-top: 40px;
+  background-color: #f8f9fb;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 15px 40px;
+}
+
+.stack {
+  display: grid;
+  gap: 24px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #ffffff;
+  border: 1px solid #e2e5eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.045);
+  padding: 20px;
+  overflow: hidden;
+}
+
+.panelHeader {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+}
+
+.chartContainerLg {
+  flex: 1 1 auto;
+  min-height: 360px;
+  width: 100%;
+  display: flex;
+}
+
+.chartContainerMid {
+  flex: 1 1 auto;
+  min-height: 360px;
+  width: 100%;
+  display: flex;
+}
+
+.chartContainer {
+  flex: 1 1 auto;
+  min-height: 320px;
+  width: 100%;
+  display: flex;
+}
+
+.kpiRow {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.kpiBox {
+  background-color: #f8f9fb;
+  border-radius: 12px;
+  padding: 16px 18px;
+  flex: 1 1 300px;
+  display: flex;
+  flex-direction: column;
+  min-width: 280px;
+}
+
+.kpiLabel {
+  color: #626c77;
+  font-size: 13.5px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.kpiValue {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+
+.sparkline {
+  flex: 1 1 auto;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+}
+
+.col-8  { grid-column: span 8; }
+.col-4  { grid-column: span 4; }
+.col-12 { grid-column: span 12; }
+
+@media (max-width: 992px) {
+  .col-8, .col-4 {
+    grid-column: span 12;
+  }
+  
+  .chartContainerLg,
+  .chartContainerMid {
+    min-height: 320px;
+  }
+}
+
+.infraAuditContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  padding: 32px 24px;
+  box-sizing: border-box;
+}
+
+.infraAuditMainContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.infraAuditLeftPanelContent {
+  padding: 28px 32px;
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.infraAuditRightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.infraAuditRiskBlock {
+  padding: 1px 0;
+}
+
+.infraAuditRiskRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.infraAuditSmallCard {
+  padding: 1px 24px;
+  height: 100%;
+}
+
+.infraAuditProgressWrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.infraAuditPillRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.infraAuditPillButton {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all .15s ease-in-out;
+  font-size: 13px;
+}
+
+.infraAuditPillButton:hover {
+  border-color: #3b82f6;
+  background: #f0f7ff;
+}
+
+@media (min-width: 1200px) {
+  .infraAuditContainer {
+    grid-template-columns: minmax(0, 560px) 1fr;
+  }
+
+  .infraAuditLeftPanelContent {
+    margin: 0;
+    max-width: none;
+  }
+}
+
+@media (max-width: 1199px) {
+  .infraAuditRiskRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.infraEarlyRow {
+  display: grid;
+  grid-template-columns: 1fr 1.65fr;
+  gap: 24px;
+}
+
+.infraEarlyRow > div {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.infraEarlyProgressContainer {
+  margin-top: 20px;
+}
+
+.infraEarlyContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+.infraEarlyStatsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: auto;
+}
+
+@media (max-width: 992px) {
+  .infraEarlyRow {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.infraEarlyRow .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.infraEarlyRow .ant-statistic-title {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.infraEarlyRow .ant-statistic-content {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.infraEarlyRow .ant-card-hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+}
