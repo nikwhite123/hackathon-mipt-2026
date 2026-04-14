@@ -69,6 +69,7 @@ export default function AnalyticsDashboardPage() {
 
             <Grid>
               <GridItem className={cls["col-8"]}>
+                <div id="Heat-map" data-report-name="График активность атак">
                 <RTCard title="Активность атак (Карта интенсивности)">
                   <div style={{ height: 350 }}>
                     <Heatmap
@@ -81,6 +82,7 @@ export default function AnalyticsDashboardPage() {
                     />
                   </div>
                 </RTCard>
+                </div>
               </GridItem>
 
               <GridItem className={cls["col-4"]}>

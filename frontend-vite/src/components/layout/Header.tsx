@@ -2,6 +2,7 @@ import React, {useMemo, useState} from "react";
 import {Layout, Menu, Typography, Button, Space, Avatar} from "antd";
 import type {MenuProps} from "antd";
 import AuthModal from "../Auth/AuthModal.tsx";
+import {generatePDFReport} from "../../utils/exportReport.ts";
 import {
     HomeOutlined,
     BookOutlined,
@@ -9,6 +10,7 @@ import {
     SecurityScanOutlined,
     ClusterOutlined,
     UserOutlined,
+    DownloadOutlined,
 } from "@ant-design/icons";
 import {NavLink, useLocation, Link} from "react-router-dom";
 import styles from "../../Styles/HomePage.module.css";
@@ -28,6 +30,14 @@ const AppHeader: React.FC = () => {
         if (pathname.startsWith("/glossary")) return "glossary";
         return "dashboard";
     }, [pathname]);
+
+    const handleDownloadReport = () => {
+        const elementsToExport = [
+            'Heat-map',
+            'Risk-sharing'
+        ];
+        generatePDFReport(elementsToExport);
+    };
 
     const items: MenuProps["items"] = [
         {
@@ -83,20 +93,29 @@ const AppHeader: React.FC = () => {
             </div>
 
             <div className={styles.headerRight}>
-                {user ? (
-                    <Space>
-                        <Avatar style={{backgroundColor: '#7733FF'}} icon={<UserOutlined/>}/>
-                        <Typography.Text style={{color: '#fff'}}>{user.name}</Typography.Text>
-                    </Space>
-                ) : (
+                <Space>
                     <Button
-                        type="primary"
-                        onClick={() => setIsAuthOpen(true)}
-                        style={{backgroundColor: '#FF4F12', border: 'none'}}
+                        icon={<DownloadOutlined/>}
+                        onClick={handleDownloadReport}
+                        style={{borderColor: '#7733FF', backgroundColor: '#7733FF', color: '#fff'}}
                     >
-                        Войти
+                        Отчет PDF
                     </Button>
-                )}
+                    {user ? (
+                        <Space>
+                            <Avatar style={{backgroundColor: '#7733FF'}} icon={<UserOutlined/>}/>
+                            <Typography.Text style={{color: '#fff'}}>{user.name}</Typography.Text>
+                        </Space>
+                    ) : (
+                        <Button
+                            type="primary"
+                            onClick={() => setIsAuthOpen(true)}
+                            style={{backgroundColor: '#FF4F12', border: 'none'}}
+                        >
+                            Войти
+                        </Button>
+                    )}
+                    </Space>
             </div>
 
             <AuthModal
@@ -105,7 +124,7 @@ const AppHeader: React.FC = () => {
                 onSuccess={(name) => setUser({name})}
             />
         </Header>
-    );
+);
 };
 
 export default AppHeader;
