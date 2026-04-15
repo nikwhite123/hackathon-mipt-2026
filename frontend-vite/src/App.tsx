@@ -45,17 +45,19 @@ function App() {
               position: 'absolute',
               top: 0,
               left: 0,
-              width: '1000px',
+              width: '1600px',
               zIndex: -1000,
               visibility: 'visible',
               opacity: 1,
-              background: '#fff'
+              background: '#fff',
+              display: 'flex', 
+              flexDirection: 'column'
             }}
           >
-            <div id="full-analytics-report" data-report-name="Аналитический отчет по угрозам">
+            <div id="full-analytics-report" style={{ width: '100%' }} data-report-name="Аналитический отчет по угрозам">
               <AnalyticsDashboardPage />
             </div>
-            <div id="full-dashboard-report" data-report-name="Общая статистика защищенности (Главная)">
+            <div id="full-dashboard-report" style={{ width: '100%' }} data-report-name="Общая статистика защищенности (Главная)">
               <HomePage />
             </div>
           </div>
