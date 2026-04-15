@@ -24,7 +24,7 @@ function makeHeatmapData() {
 
 export default function AnalyticsDashboardPage() {
   const [stats, setStats] = useState<any>(null);
-  const [distData, setDistData] = useState<{category: string, count: number}[]>([]);
+  const [distData, setDistData] = useState<{ category: string, count: number }[]>([]);
 
   useEffect(() => {
     fetchStats().then((data) => {
@@ -40,74 +40,72 @@ export default function AnalyticsDashboardPage() {
   }, []);
 
   return (
-      <Page>
-        <div style={{ paddingTop: '34px', paddingLeft: '34px', paddingRight: '34px' }}>
-          <div className={cls.stack16}>
-            <Grid>
-              <GridItem className={cls["col-4"]}>
-                <RTCard title="Всего инцидентов">
-                  <h2 style={{ fontSize: '2.5rem', margin: 0, color: RT_PURPLE }}>
-                    {stats?.total_incidents || 0}
-                  </h2>
-                </RTCard>
-              </GridItem>
-              <GridItem className={cls["col-4"]}>
-                <RTCard title="Топ метод">
-                  <h2 style={{ color: RT_ORANGE,fontSize: '2.5rem', margin: 0, fontWeight: 'bold' }}>
-                    {stats?.top_attack_method?.toUpperCase() || '—'}
-                  </h2>
-                </RTCard>
-              </GridItem>
-              <GridItem className={cls["col-4"]}>
-                <RTCard title="Главная цель">
-                  <h2 style={{ color: RT_DARK, fontSize: '2.5rem', margin: 0 }}>
-                    {stats?.top_target_object?.toUpperCase() || '—'}
-                  </h2>
-                </RTCard>
-              </GridItem>
-            </Grid>
+    <Page>
+      <div style={{ paddingTop: '34px', paddingLeft: '34px', paddingRight: '34px' }}>
+        <div className={cls.stack16}>
+          <Grid>
+            <GridItem className={cls["col-4"]}>
+              <RTCard title="Всего инцидентов">
+                <h2 style={{ fontSize: '2.5rem', margin: 0, color: RT_PURPLE }}>
+                  {stats?.total_incidents || 0}
+                </h2>
+              </RTCard>
+            </GridItem>
+            <GridItem className={cls["col-4"]}>
+              <RTCard title="Топ метод">
+                <h2 style={{ color: RT_ORANGE, fontSize: '2.5rem', margin: 0, fontWeight: 'bold' }}>
+                  {stats?.top_attack_method?.toUpperCase() || '—'}
+                </h2>
+              </RTCard>
+            </GridItem>
+            <GridItem className={cls["col-4"]}>
+              <RTCard title="Главная цель">
+                <h2 style={{ color: RT_DARK, fontSize: '2.5rem', margin: 0 }}>
+                  {stats?.top_target_object?.toUpperCase() || '—'}
+                </h2>
+              </RTCard>
+            </GridItem>
+          </Grid>
 
-            <Grid>
-              <GridItem className={cls["col-8"]}>
-                <div id="Heat-map" data-report-name="График активность атак">
-                <RTCard title="Активность атак (Карта интенсивности)">
-                  <div style={{ height: 350 }}>
-                    <Heatmap
-                        data={makeHeatmapData()}
-                        xField="hour"
-                        yField="day"
-                        colorField="value"
-                        autoFit
-                        color={['#ffffff', RT_PURPLE]}
-                    />
-                  </div>
-                </RTCard>
+          <Grid>
+            <GridItem className={cls["col-8"]}>
+              <RTCard title="Активность атак (Карта интенсивности)">
+                <div style={{ height: 350 }}>
+                  <Heatmap
+                    data={makeHeatmapData()}
+                    xField="hour"
+                    yField="day"
+                    colorField="value"
+                    autoFit
+                    color={['#ffffff', RT_PURPLE]}
+                  />
                 </div>
-              </GridItem>
+              </RTCard>
+            </GridItem>
 
-              <GridItem className={cls["col-4"]}>
-                <RTCard title="Распределение рисков">
-                  <div style={{ height: 350 }}>
-                    <Column
-                        data={distData}
-                        xField="category"
-                        yField="count"
-                        autoFit
-                        color={({ category }: { category: string }) => {
-                          return (category === 'CRITICAL' || category === 'HIGH')
-                              ? RT_ORANGE
-                              : RT_PURPLE;
-                        }}
-                        columnStyle={{
-                          radius: [4, 4, 0, 0]
-                        }}
-                    />
-                  </div>
-                </RTCard>
-              </GridItem>
-            </Grid>
-          </div>
+            <GridItem className={cls["col-4"]}>
+              <RTCard title="Распределение рисков">
+                <div style={{ height: 350 }}>
+                  <Column
+                    data={distData}
+                    xField="category"
+                    yField="count"
+                    autoFit
+                    color={({ category }: { category: string }) => {
+                      return (category === 'CRITICAL' || category === 'HIGH')
+                        ? RT_ORANGE
+                        : RT_PURPLE;
+                    }}
+                    columnStyle={{
+                      radius: [4, 4, 0, 0]
+                    }}
+                  />
+                </div>
+              </RTCard>
+            </GridItem>
+          </Grid>
         </div>
-      </Page>
+      </div>
+    </Page>
   )
 }

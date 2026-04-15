@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Layout } from "antd"
 import { Route, Routes, BrowserRouter } from "react-router-dom"
 import HomePage from "./pages/HomePage"
@@ -13,11 +14,12 @@ import GlossaryPage from "./pages/GlossaryPage"
 import SettingsPage from "./pages/SettingsPage"
 
 function App() {
+  const [isExporting, setIsExporting] = useState(false);
   return (
     <BrowserRouter>
       <Layout style={{ minHeight: "100vh" }}>
         <Layout>
-          <AppHeader />
+          <AppHeader onStartExport={() => setIsExporting(true)} onEndExport={() => setIsExporting(false)} />
           <Layout.Content className="rt-content">
             <div className="rt-content-outer">
               <div className="rt-content-inner">
@@ -36,6 +38,28 @@ function App() {
             </div>
           </Layout.Content>
         </Layout>
+        {isExporting && (
+          <div
+            id="hidden-report-engine"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '1000px',
+              zIndex: -1000,
+              visibility: 'visible',
+              opacity: 1,
+              background: '#fff'
+            }}
+          >
+            <div id="full-analytics-report" data-report-name="Аналитический отчет по угрозам">
+              <AnalyticsDashboardPage />
+            </div>
+            <div id="full-dashboard-report" data-report-name="Общая статистика защищенности (Главная)">
+              <HomePage />
+            </div>
+          </div>
+        )}
       </Layout>
     </BrowserRouter>
   )

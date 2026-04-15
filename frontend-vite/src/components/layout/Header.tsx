@@ -1,8 +1,8 @@
-import React, {useMemo, useState} from "react";
-import {Layout, Menu, Typography, Button, Space, Avatar} from "antd";
-import type {MenuProps} from "antd";
+import React, { useMemo, useState } from "react";
+import { Layout, Menu, Typography, Button, Space, Avatar } from "antd";
+import type { MenuProps } from "antd";
 import AuthModal from "../Auth/AuthModal.tsx";
-import {generatePDFReport} from "../../utils/exportReport.ts";
+import { generatePDFReport } from "../../utils/exportReport.ts";
 import {
     HomeOutlined,
     BookOutlined,
@@ -12,14 +12,19 @@ import {
     UserOutlined,
     DownloadOutlined,
 } from "@ant-design/icons";
-import {NavLink, useLocation, Link} from "react-router-dom";
+import { NavLink, useLocation, Link } from "react-router-dom";
 import styles from "../../Styles/HomePage.module.css";
 
 
-const {Header} = Layout;
+const { Header } = Layout;
 
-const AppHeader: React.FC = () => {
-    const {pathname} = useLocation();
+interface AppHeaderProps {
+    onStartExport: () => void;
+    onEndExport: () => void;
+}
+
+const AppHeader: React.FC<AppHeaderProps> = ({ onStartExport, onEndExport }) => {
+    const { pathname } = useLocation();
     const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [user, setUser] = useState<{ name: string } | null>(null);
 
@@ -32,37 +37,45 @@ const AppHeader: React.FC = () => {
     }, [pathname]);
 
     const handleDownloadReport = () => {
-        const elementsToExport = [
-            'Heat-map',
-            'Risk-sharing'
-        ];
-        generatePDFReport(elementsToExport);
+        onStartExport();
+        setTimeout(async () => {
+            const elements = ['full-analytics-report', 'full-dashboard-report'];
+
+            try {
+                await generatePDFReport(elements);
+            } catch (e) {
+                console.error("Ошибка при генерации:", e);
+            } finally {
+                onEndExport();
+            }
+
+        }, 2500);
     };
 
     const items: MenuProps["items"] = [
         {
             key: "dashboard",
-            icon: <HomeOutlined/>,
+            icon: <HomeOutlined />,
             label: <NavLink to="/">Дашборд</NavLink>,
         },
         {
             key: "infrastructure",
-            icon: <ClusterOutlined/>,
+            icon: <ClusterOutlined />,
             label: <NavLink to="/infrastructure">Инфраструктура</NavLink>,
         },
         {
             key: "security-audit",
-            icon: <SecurityScanOutlined/>,
+            icon: <SecurityScanOutlined />,
             label: <NavLink to="/security-audit">Аудит</NavLink>,
         },
         {
             key: "analytics",
-            icon: <LineChartOutlined/>,
+            icon: <LineChartOutlined />,
             label: <NavLink to="/analytics">Аналитика</NavLink>,
         },
         {
             key: "glossary",
-            icon: <BookOutlined/>,
+            icon: <BookOutlined />,
             label: <NavLink to="/glossary">Глоссарий</NavLink>,
         },
     ];
@@ -95,36 +108,36 @@ const AppHeader: React.FC = () => {
             <div className={styles.headerRight}>
                 <Space>
                     <Button
-                        icon={<DownloadOutlined/>}
+                        icon={<DownloadOutlined />}
                         onClick={handleDownloadReport}
-                        style={{borderColor: '#7733FF', backgroundColor: '#7733FF', color: '#fff'}}
+                        style={{ borderColor: '#7733FF', backgroundColor: '#7733FF', color: '#fff' }}
                     >
                         Отчет PDF
                     </Button>
                     {user ? (
                         <Space>
-                            <Avatar style={{backgroundColor: '#7733FF'}} icon={<UserOutlined/>}/>
-                            <Typography.Text style={{color: '#fff'}}>{user.name}</Typography.Text>
+                            <Avatar style={{ backgroundColor: '#7733FF' }} icon={<UserOutlined />} />
+                            <Typography.Text style={{ color: '#fff' }}>{user.name}</Typography.Text>
                         </Space>
                     ) : (
                         <Button
                             type="primary"
                             onClick={() => setIsAuthOpen(true)}
-                            style={{backgroundColor: '#FF4F12', border: 'none'}}
+                            style={{ backgroundColor: '#FF4F12', border: 'none' }}
                         >
                             Войти
                         </Button>
                     )}
-                    </Space>
+                </Space>
             </div>
 
             <AuthModal
                 isOpen={isAuthOpen}
                 onClose={() => setIsAuthOpen(false)}
-                onSuccess={(name) => setUser({name})}
+                onSuccess={(name) => setUser({ name })}
             />
         </Header>
-);
+    );
 };
 
 export default AppHeader;
