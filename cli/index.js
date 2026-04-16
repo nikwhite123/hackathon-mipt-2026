@@ -7,11 +7,68 @@ const Table = require('cli-table3');
 
 const program = new Command();
 
-
 program
     .name('rt-infra')
     .description('Инструмент командной строки RT Infra Security')
     .version('1.0.0');
+
+program
+    .command('welcome')
+    .description('Показать приветствие и список возможностей')
+    .action(() => {
+        const logoText = `
+        ██████╗ ████████╗    ██╗███╗   ██╗███████╗██████╗  █████╗ 
+        ██╔══██╗╚══██╔══╝    ██║████╗  ██║██╔════╝██╔══██╗██╔══██╗
+        ██████╔╝   ██║       ██║██╔██╗ ██║█████╗  ██████╔╝███████║
+        ██╔══██╗   ██║       ██║██║╚██╗██║██╔══╝  ██╔══██╗██╔══██║
+        ██║  ██║   ██║       ██║██║ ╚████║██║     ██║  ██║██║  ██║
+        ╚═╝  ╚═╝   ╚═╝       ╚═╝╚═╝  ╚═══╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝
+        `;
+
+        const colors = [chalk.hex('#7733FF'), chalk.hex('#FF502F'), chalk.cyan];
+        let i = 0;
+
+        const interval = setInterval(() => {
+            process.stdout.write('\x1Bc');
+            console.log(colors[i % colors.length].bold(logoText));
+            console.log(chalk.bold.cyan('    === RT INFRA SECURITY TERMINAL v1.0.0 ===\n'));
+            i++;
+        }, 200);
+
+        setTimeout(() => {
+            clearInterval(interval);
+            process.stdout.write('\x1Bc');
+            console.log(chalk.hex('#7733FF').bold(logoText));
+
+            const mainFrame = new Table({
+                head: [chalk.bold.hex('#FF502F')('   --- ROSTELECOM INFRA SECURITY SYSTEM ---   ')],
+                style: { 'padding-left': 2, 'padding-right': 2 },
+                chars: { 
+                    'top': '═', 'top-mid': '╤', 'top-left': '╔', 'top-right': '╗',
+                    'bottom': '═', 'bottom-mid': '╧', 'bottom-left': '╚', 'bottom-right': '╝',
+                    'left': '║', 'left-mid': '╟', 'mid': '─', 'mid-mid': '┼',
+                    'right': '║', 'right-mid': '╢', 'middle': '│' 
+                }
+            });
+
+            const content = [
+                chalk.gray('Централизованный терминал мониторинга и ML-прогнозирования'),
+                '',
+                chalk.bold.hex('#7733FF')('ДОСТУПНЫЕ КОМАНДЫ:'),
+                `${chalk.bold.hex('#FF502F')('status ')}      ${chalk.white('Проверка связи с ядром системы')}`,
+                `${chalk.bold.hex('#FF502F')('stats  ')}      ${chalk.white('Аналитическая сводка по регионам')}`,
+                `${chalk.bold.hex('#FF502F')('threats')}      ${chalk.white('Реестр угроз ИБ (FSTEC data)')}`,
+                `${chalk.bold.hex('#FF502F')('predict')}      ${chalk.white('Запуск ML-анализа векторов атак')}`,
+                '',
+                chalk.cyan('Пример: ') + chalk.white('node index.js status'),
+                chalk.cyan('Подсказка: ') + chalk.white('используйте --help для каждой команды')
+            ].join('\n');
+
+            mainFrame.push([content]);
+            console.log(mainFrame.toString());
+            console.log('\n' + chalk.hex('#7733FF')('READY_TO_SCAN > ') + chalk.white('Введите команду...'));
+        }, 1200);
+    });
 
 program
     .command('status')
@@ -30,7 +87,7 @@ program
         }
     });
 
-    program
+program
     .command('threats')
     .description('Показать реестр угроз')
     .action(async () => {
@@ -63,7 +120,7 @@ program
         }
     });
 
-    program
+program
     .command('stats')
     .description('Краткая сводка аналитики по угрозам')
     .action(async () => {
@@ -99,7 +156,7 @@ program
         }
     });
 
-    program
+program
     .command('predict <org_id>')
     .action(async (orgId) => {
         console.log(chalk.magenta(`📡 Анализ векторов атак для ID: ${orgId}...`));
@@ -155,4 +212,8 @@ program
         }
     });
 
-program.parse();
+if (!process.argv.slice(2).length) {
+    program.parse(['node', 'index.js', 'welcome']);
+} else {
+    program.parse(process.argv);
+}
