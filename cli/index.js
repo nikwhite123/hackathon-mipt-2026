@@ -60,7 +60,7 @@ program
                 `${chalk.bold.hex('#FF502F')('threats')}      ${chalk.white('Реестр угроз ИБ (FSTEC data)')}`,
                 `${chalk.bold.hex('#FF502F')('predict')}      ${chalk.white('Запуск ML-анализа векторов атак')}`,
                 '',
-                chalk.cyan('Пример: ') + chalk.white('node index.js status'),
+                chalk.cyan('Пример: ') + chalk.white('rt status'),
                 chalk.cyan('Подсказка: ') + chalk.white('используйте --help для каждой команды')
             ].join('\n');
 
@@ -76,7 +76,7 @@ program
     .action(async () => {
         console.log(chalk.gray('Проверка связи с бэкендом Rostelecom...'));
         try {
-            const response = await axios.get('http://localhost:8001/health');
+            const response = await axios.get('http://localhost:8000/health');
             if (response.data.status === 'ok') {
                 console.log(chalk.green('✔ Система мониторинга онлайн'));
                 console.log(chalk.white(`Версия API: 2.1.0`));
@@ -92,7 +92,7 @@ program
     .description('Показать реестр угроз')
     .action(async () => {
         try {
-            const response = await axios.get('http://localhost:8001/threats');
+            const response = await axios.get('http://localhost:8000/threats');
             const threats = response.data.items;
 
             const table = new Table({
@@ -125,7 +125,7 @@ program
     .description('Краткая сводка аналитики по угрозам')
     .action(async () => {
         try {
-            const response = await axios.get('http://localhost:8001/stats');
+            const response = await axios.get('http://localhost:8000/stats');
             const d = response.data;
 
             console.log(chalk.bold.hex('#7733FF')('\n--- СВОДНАЯ СТАТИСТИКА RT INFRA ---'));
@@ -161,7 +161,7 @@ program
     .action(async (orgId) => {
         console.log(chalk.magenta(`📡 Анализ векторов атак для ID: ${orgId}...`));
         try {
-            const response = await axios.post('http://localhost:8001/predict', {
+            const response = await axios.post('http://localhost:8000/predict', {
                 organization_id: orgId,
                 infrastructure_type: "hybrid",
                 industry: "finance",
