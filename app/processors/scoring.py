@@ -24,6 +24,7 @@ class ThreatScoringProcessor:
             region=payload.region,
             hour=payload.hour,
             season=payload.season,
+            organization_code=payload.organization_id,
         )
         asset_criticality = self.config.asset_criticality_by_target[payload.asset_type]
 

@@ -8,8 +8,8 @@ class AnalyticsService:
     def __init__(self, repository: DataRepository):
         self.repository = repository
 
-    def build_stats(self) -> ThreatStats:
-        incidents = self.repository.load_incidents()
+    def build_stats(self, organization_code: str | None = None) -> ThreatStats:
+        incidents = self.repository.load_incidents_by_organization_code(organization_code)
         registry = self.repository.load_fstec_registry()[['threat_code', 'name', 'description', 'object_of_impact']]
         dataset = incidents.merge(registry, on='threat_code', how='left')
         dataset['attack_method'] = dataset.apply(self._detect_attack_method, axis=1)
@@ -18,8 +18,8 @@ class AnalyticsService:
 
         return ThreatStats(
             total_incidents=len(dataset),
-            top_attack_method=dataset['attack_method'].value_counts().idxmax(),
-            top_target_object=dataset['target_object'].value_counts().idxmax(),
+            top_attack_method=dataset['attack_method'].value_counts().idxmax() if not dataset.empty else 'malware',
+            top_target_object=dataset['target_object'].value_counts().idxmax() if not dataset.empty else 'workstation',
             risk_distribution=dataset['risk_level'].value_counts().sort_index().to_dict(),
             incidents_by_season=dataset['season'].value_counts().sort_index().to_dict(),
             incidents_by_time_of_day=dataset['time_of_day'].value_counts().sort_index().to_dict(),

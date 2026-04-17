@@ -9,5 +9,5 @@ class StatsService:
     def __init__(self, repository: DataRepository):
         self.analytics_service = AnalyticsService(repository)
 
-    def build_stats(self) -> ThreatStats:
-        return self.analytics_service.build_stats()
+    def build_stats(self, organization_code: str | None = None) -> ThreatStats:
+        return self.analytics_service.build_stats(organization_code=organization_code)

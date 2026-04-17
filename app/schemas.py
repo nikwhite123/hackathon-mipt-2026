@@ -45,6 +45,46 @@ class ThreatReference(BaseModel):
     source: str = "FSTEC mock registry"
 
 
+
+
+class OrganizationResponse(BaseModel):
+    id: int
+    name: str
+    code: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class UserRegisterRequest(BaseModel):
+    first_name: str = Field(..., min_length=1, max_length=100)
+    last_name: str = Field(..., min_length=1, max_length=100)
+    email: str = Field(..., examples=["user@example.com"])
+    password: str = Field(..., min_length=6, max_length=128)
+    organization_id: int = Field(..., ge=1)
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: str
+    organization_id: int
+    organization_name: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class UserLoginResponse(TokenResponse):
+    user: UserResponse
+
 class PredictRequest(BaseModel):
     organization_id: str = Field(..., examples=["org-001"])
     region: str = Field(..., examples=["Moscow"])
