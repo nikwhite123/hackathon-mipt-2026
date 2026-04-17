@@ -28,3 +28,24 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+
+# Python env / local config
+.env
+venv/
+
+# IDE
+.vscode/
+
+# Coverage / reports
+.coverage
+htmlcov/
+
+# Local databases
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Windows
+Thumbs.db

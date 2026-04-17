@@ -51,6 +51,7 @@ class DataRepository:
                 'Региональное время': 'regional_time',
             }
         )
+        frame['organization_code'] = frame['organization_code'].astype(str)
         frame['incident_date'] = pd.to_datetime(frame['incident_date'], errors='coerce', dayfirst=True)
         frame['regional_time'] = pd.to_datetime(frame['regional_time'], errors='coerce', dayfirst=True)
         frame['hour'] = frame['regional_time'].dt.hour.fillna(0).astype(int)
@@ -65,6 +66,13 @@ class DataRepository:
         )
         frame['time_of_day'] = frame['hour'].map(self._time_of_day)
         return frame
+
+    def load_incidents_by_organization_code(self, organization_code: str | None) -> pd.DataFrame:
+        incidents = self.load_incidents()
+        if not organization_code:
+            return incidents
+        filtered = incidents[incidents['organization_code'] == str(organization_code)]
+        return filtered if not filtered.empty else incidents.iloc[0:0].copy()
 
     @lru_cache(maxsize=1)
     def load_fstec_registry(self) -> pd.DataFrame:
