@@ -11,6 +11,7 @@ node_modules
 
 # production
 /build
+frontend-vite/dist/
 
 # misc
 .DS_Store

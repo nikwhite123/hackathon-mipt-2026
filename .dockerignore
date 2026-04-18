@@ -1,0 +1,15 @@
+.git
+__pycache__
+*.py[cod]
+*.db
+.env
+.venv
+venv
+.idea
+*.md
+frontend-vite/node_modules
+frontend-vite/dist
+tests
+.pytest_cache
+htmlcov
+Описание*.pdf
