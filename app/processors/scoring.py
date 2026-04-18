@@ -1,12 +1,19 @@
+"""Compute risk_score and confidence from scoring.json and attack context."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from sqlalchemy.orm import Session
+
 from app.schemas import PredictRequest, ScoringConfig
+from app.services.risk_context_service import RiskContextService
 
 
 @dataclass
 class ScoringResult:
+    """Scoring output for a prediction response and rationale."""
+
     risk_score: float
     confidence: float
     rationale: list[str] = field(default_factory=list)
@@ -15,16 +22,21 @@ class ScoringResult:
 
 
 class ThreatScoringProcessor:
-    def __init__(self, config: ScoringConfig, analytics_service):
-        self.config = config
-        self.analytics_service = analytics_service
+    """Weighted blend of vulnerability count, attack intensity, and asset criticality."""
 
-    def score(self, payload: PredictRequest) -> ScoringResult:
-        attack_intensity = self.analytics_service.get_attack_intensity(
+    def __init__(self, config: ScoringConfig, risk_context_service: RiskContextService):
+        self.config = config
+        self.risk_context_service = risk_context_service
+
+    def score(self, payload: PredictRequest, db: Session | None = None) -> ScoringResult:
+        """Return ScoringResult with capped risk_score and confidence."""
+        attack_intensity = self.risk_context_service.get_attack_intensity(
             region=payload.region,
             hour=payload.hour,
             season=payload.season,
             organization_code=payload.organization_id,
+            industry=payload.industry,
+            db=db,
         )
         asset_criticality = self.config.asset_criticality_by_target[payload.asset_type]
 
@@ -37,14 +49,17 @@ class ThreatScoringProcessor:
         confidence = min(round(self.config.confidence_base + risk * self.config.confidence_multiplier, 2), 0.98)
 
         rationale = [
-            f'Учитывается число известных уязвимостей: {payload.known_vulnerabilities_count}.',
-            f'Интенсивность атак по историческим данным для региона/часа/сезона: {attack_intensity:.2f}.',
-            f'Критичность актива {payload.asset_type}: {asset_criticality:.2f}.',
+            f'Known vulnerability count considered: {payload.known_vulnerabilities_count}.',
+            (
+                f'Attack intensity from history (region, season, hour; with enough data — '
+                f'industry {payload.industry}): {attack_intensity:.2f}.'
+            ),
+            f'Asset criticality for {payload.asset_type}: {asset_criticality:.2f}.',
         ]
         if payload.has_external_access:
-            rationale.append('У актива есть внешний доступ, это усиливает приоритет реагирования.')
+            rationale.append('The asset has external exposure, which raises response priority.')
         if payload.privileged_accounts_count >= 10:
-            rationale.append('Большое число привилегированных учётных записей увеличивает поверхность атаки.')
+            rationale.append('A large number of privileged accounts increases the attack surface.')
 
         return ScoringResult(
             risk_score=risk,

@@ -8,7 +8,7 @@
       "severity": "high",
       "likely_targets": ["crm", "mail_gateway"],
       "common_methods": ["phishing", "credential_stuffing"],
-      "source": "FSTEC mock registry"
+      "source": "FSTEC threat catalog"
     },
     {
       "threat_id": "TH-002",
@@ -18,7 +18,7 @@
       "severity": "critical",
       "likely_targets": ["file_server", "workstation"],
       "common_methods": ["ransomware", "malware"],
-      "source": "FSTEC mock registry"
+      "source": "FSTEC threat catalog"
     },
     {
       "threat_id": "TH-003",
@@ -28,7 +28,7 @@
       "severity": "high",
       "likely_targets": ["vpn_gateway"],
       "common_methods": ["brute_force", "credential_stuffing"],
-      "source": "FSTEC mock registry"
+      "source": "FSTEC threat catalog"
     },
     {
       "threat_id": "TH-004",
@@ -38,7 +38,7 @@
       "severity": "medium",
       "likely_targets": ["web_portal", "db_server"],
       "common_methods": ["sql_injection"],
-      "source": "FSTEC mock registry"
+      "source": "FSTEC threat catalog"
     },
     {
       "threat_id": "TH-005",
@@ -48,7 +48,7 @@
       "severity": "medium",
       "likely_targets": ["workstation", "file_server"],
       "common_methods": ["malware", "phishing"],
-      "source": "FSTEC mock registry"
+      "source": "FSTEC threat catalog"
     }
   ],
   "recommendations": {
