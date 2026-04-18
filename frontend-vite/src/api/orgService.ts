@@ -1,13 +1,20 @@
+/**
+ * Organization infrastructure settings: `GET/POST /org/settings`.
+ */
 import axiosClient from './axiosClient'
 import type { OrgSettings } from '../constants/org'
-import { backendEnabled } from './config'
 
 export async function saveOrgSettings(payload: OrgSettings) {
-	if (backendEnabled) {
-		const { data } = await axiosClient.post('/org/settings', payload)
-		return data
-	}
-	await new Promise((r) => setTimeout(r, 300))
-	return { ok: true }
+  const { data } = await axiosClient.post('/org/settings', {
+    region: payload.region,
+    industry: payload.enterpriseType,
+    host_count: payload.hosts,
+    technologies: payload.technologies,
+  })
+  return data
 }
 
+export async function fetchOrgSettings() {
+  const { data } = await axiosClient.get('/org/settings')
+  return data
+}

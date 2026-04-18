@@ -1,10 +1,11 @@
+/**
+ * Renders DOM nodes to canvas and builds a multi-page PDF report (dashboard export).
+ */
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 export const generatePDFReport = async (elementIds: string[]) => {
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
 
     let isFirstPage = true;
 

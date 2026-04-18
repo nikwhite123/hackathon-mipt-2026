@@ -1,3 +1,6 @@
+/**
+ * UI-facing org settings types and defaults (region/industry map to API payloads in orgService).
+ */
 export type Region = "MSK" | "SPB" | "SIB" | "FAR_EAST"
 
 export type EnterpriseType = "Finance" | "Telecom" | "Retail" | "Gov"

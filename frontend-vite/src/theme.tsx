@@ -1,3 +1,6 @@
+/**
+ * Ant Design ConfigProvider with Rostelecom-inspired tokens and layout colors.
+ */
 import { ConfigProvider, theme } from "antd"
 import React from "react"
 
@@ -17,13 +20,14 @@ export function RTThemeProvider({ children }: Props) {
 					colorTextHeading: "#0b1324",
 					colorBorder: "#e5e7eb",
 					colorBgBase: "#ffffff",
+					colorBgLayout: "#f8f9fb",
 					fontFamily: "Inter, system-ui, 'Segoe UI', Roboto, Arial, sans-serif",
 					borderRadius: 8
 				},
 				components: {
 					Layout: {
 						headerBg: "#0b1f33",
-						bodyBg: "#ffffff",
+						bodyBg: "#f8f9fb",
 						siderBg: "#0b1f33"
 					},
 					Menu: {

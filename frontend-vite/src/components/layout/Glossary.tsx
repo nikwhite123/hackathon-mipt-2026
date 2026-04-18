@@ -1,3 +1,6 @@
+/**
+ * Searchable glossary of terms plus optional live threat catalog from `/threats`.
+ */
 import React, { useState, useEffect } from 'react';
 import { Input, Button, Collapse, Typography, Tabs, Tag, Space, Spin } from 'antd';
 import { SearchOutlined, BookOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
@@ -9,11 +12,8 @@ const { Title, Text } = Typography;
 const { Panel } = Collapse;
 
 const Glossary: React.FC = () => {
-    // Состояния для терминов
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [selectedLetter, setSelectedLetter] = useState<string>('F');
-    
-    // Состояния для угроз ФСТЭК
     const [threats, setThreats] = useState<IThreat[]>([]);
     const [loadingThreats, setLoadingThreats] = useState<boolean>(false);
 
@@ -30,7 +30,6 @@ const Glossary: React.FC = () => {
         return matchesSearch && matchesLetter;
     });
 
-    // Отрисовка контента терминов
     const renderTerms = () => (
         <>
             <div style={{ display: 'flex', gap: 12, marginBottom: 24, marginTop: 24 }}>
@@ -75,7 +74,6 @@ const Glossary: React.FC = () => {
         </>
     );
 
-    // Отрисовка контента угроз ФСТЭК
     const renderThreats = () => (
         <Spin spinning={loadingThreats}>
             <div style={{ marginTop: 24 }}>

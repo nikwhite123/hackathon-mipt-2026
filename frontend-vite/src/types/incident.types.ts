@@ -1,3 +1,6 @@
+/**
+ * Frontend shapes for incidents, predictions, and vulnerability audit views.
+ */
 export type TargetObjectType = 'server' | 'network_segment' | 'application' | 'database';
 
 export type SeverityLevel = 'low' | 'medium' | 'high' | 'critical';

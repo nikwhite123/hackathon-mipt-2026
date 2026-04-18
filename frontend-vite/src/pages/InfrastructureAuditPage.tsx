@@ -1,5 +1,8 @@
+/**
+ * Infrastructure audit: inline org form plus embedded radar and early-warning previews.
+ */
 import { Form, InputNumber, Select, Checkbox, Button, message } from "antd"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { saveOrgSettings } from "../api/orgService"
 import {
   ENTERPRISE_TYPE_OPTIONS,
@@ -17,6 +20,10 @@ export default function InfrastructureAuditPage() {
   const [loading, setLoading] = useState(false)
   const [form] = Form.useForm()
   const { settings, update } = useOrgStore()
+
+  useEffect(() => {
+    form.setFieldsValue(settings)
+  }, [settings, form])
 
   const onSubmit = async () => {
     const values = await form.validateFields()

@@ -1,3 +1,6 @@
+/**
+ * Standard page chrome: optional title/subtitle and body slot using rt.module.css.
+ */
 import { Typography } from "antd"
 import styles from "../Styles/rt.module.css"
 

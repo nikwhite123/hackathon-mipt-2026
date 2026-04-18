@@ -1,22 +1,22 @@
-import React, { useMemo, useState } from "react";
+/**
+ * App header: primary nav, auth entry, PDF export trigger, and user menu.
+ */
+import React, { useState } from "react";
 import { Layout, Menu, Typography, Button, Space, Avatar } from "antd";
-import type { MenuProps } from "antd";
 import AuthModal from "../Auth/AuthModal.tsx";
 import { generatePDFReport } from "../../utils/exportReport.ts";
 import {
-    HomeOutlined,
-    BookOutlined,
-    LineChartOutlined,
-    SecurityScanOutlined,
-    ClusterOutlined,
     UserOutlined,
     DownloadOutlined,
 } from "@ant-design/icons";
-import { NavLink, useLocation, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import styles from "../../Styles/HomePage.module.css";
+import { logout } from "../../api/authService";
+import { useAuthStore } from "../../store/authStore";
+import { useOrgStore } from "../../store/orgStore";
+import { buildNavigationItems, getSelectedNavigationKey } from "./navigation.tsx";
 
-
-const { Header } = Layout;
+const { Header } = Layout
 
 interface AppHeaderProps {
     onStartExport: () => void;
@@ -26,20 +26,14 @@ interface AppHeaderProps {
 const AppHeader: React.FC<AppHeaderProps> = ({ onStartExport, onEndExport }) => {
     const { pathname } = useLocation();
     const [isAuthOpen, setIsAuthOpen] = useState(false);
-    const [user, setUser] = useState<{ name: string } | null>(null);
-
-    const selectedKey = useMemo(() => {
-        if (pathname.startsWith("/infrastructure")) return "infrastructure";
-        if (pathname.startsWith("/security-audit")) return "security-audit";
-        if (pathname.startsWith("/analytics")) return "analytics";
-        if (pathname.startsWith("/glossary")) return "glossary";
-        return "dashboard";
-    }, [pathname]);
+    const { user, setUser } = useAuthStore();
+    const setOrganizationCode = useOrgStore((s) => s.setOrganizationCode)
+    const selectedKey = getSelectedNavigationKey(pathname)
 
     const handleDownloadReport = () => {
         onStartExport();
         setTimeout(async () => {
-            const elements = ['full-analytics-report', 'full-dashboard-report'];
+            const elements = ["pdf-export-analytics", "pdf-export-dashboard"];
 
             try {
                 await generatePDFReport(elements);
@@ -51,34 +45,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onStartExport, onEndExport }) => 
 
         }, 2500);
     };
-
-    const items: MenuProps["items"] = [
-        {
-            key: "dashboard",
-            icon: <HomeOutlined />,
-            label: <NavLink to="/">Дашборд</NavLink>,
-        },
-        {
-            key: "infrastructure",
-            icon: <ClusterOutlined />,
-            label: <NavLink to="/infrastructure">Инфраструктура</NavLink>,
-        },
-        {
-            key: "security-audit",
-            icon: <SecurityScanOutlined />,
-            label: <NavLink to="/security-audit">Аудит</NavLink>,
-        },
-        {
-            key: "analytics",
-            icon: <LineChartOutlined />,
-            label: <NavLink to="/analytics">Аналитика</NavLink>,
-        },
-        {
-            key: "glossary",
-            icon: <BookOutlined />,
-            label: <NavLink to="/glossary">Глоссарий</NavLink>,
-        },
-    ];
 
     return (
         <Header className={styles.header}>
@@ -94,7 +60,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onStartExport, onEndExport }) => 
                 <Menu
                     mode="horizontal"
                     selectedKeys={[selectedKey]}
-                    items={items}
+                    items={buildNavigationItems()}
                     style={{
                         borderBottom: "none",
                         background: "transparent",
@@ -117,7 +83,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onStartExport, onEndExport }) => 
                     {user ? (
                         <Space>
                             <Avatar style={{ backgroundColor: '#7733FF' }} icon={<UserOutlined />} />
-                            <Typography.Text style={{ color: '#fff' }}>{user.name}</Typography.Text>
+                            <Typography.Text style={{ color: '#fff' }}>
+                                {user.first_name} {user.last_name}
+                            </Typography.Text>
+                            <Button
+                                onClick={() => {
+                                    logout()
+                                }}
+                            >
+                                Выйти
+                            </Button>
                         </Space>
                     ) : (
                         <Button
@@ -134,7 +109,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onStartExport, onEndExport }) => 
             <AuthModal
                 isOpen={isAuthOpen}
                 onClose={() => setIsAuthOpen(false)}
-                onSuccess={(name) => setUser({ name })}
+                onSuccess={(currentUser) => {
+                    setUser(currentUser)
+                    setOrganizationCode(currentUser.organization_code ?? '')
+                }}
             />
         </Header>
     );
