@@ -1,3 +1,6 @@
+/**
+ * Curated glossary entries for the Glossary page (static content).
+ */
 export type TermCategory = 'term' | 'threat' | 'vulnerability';
 
 export interface Term {

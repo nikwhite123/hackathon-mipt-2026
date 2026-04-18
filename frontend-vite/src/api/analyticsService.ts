@@ -1,40 +1,16 @@
-// import axiosClient from './axiosClient'
-// import { backendEnabled } from './config'
-//
-// export type AnalyticsFilters = {
-// 	season: string
-// 	threatType: string
-// }
-//
-// export async function fetchHeatmap(filters: AnalyticsFilters) {
-// 	if (backendEnabled) {
-// 		const { data } = await axiosClient.get<unknown[]>('/analytics/heatmap', { params: filters })
-// 		return data
-// 	}
-// 	await new Promise((r) => setTimeout(r, 200))
-// 	return []
-// }
-//
-// export async function fetchDistribution(filters: AnalyticsFilters) {
-// 	if (backendEnabled) {
-// 		const { data } = await axiosClient.get<unknown[]>('/analytics/distribution', { params: filters })
-// 		return data
-// 	}
-// 	await new Promise((r) => setTimeout(r, 200))
-// 	return []
-// }
-//
-import axiosClient from './axiosClient';
+/**
+ * Analytics stats (`GET /stats`) and facet lists for dashboard filters (`GET /stats/facets`).
+ */
+import axiosClient from "./axiosClient"
 
-export type AnalyticsFilters = {
-	season: string;
-	threatType: string;
+export const fetchStats = async (params?: Record<string, string | number>) => {
+	const response = await axiosClient.get("/stats", { params: params ?? {} })
+	return response.data
 }
 
-export const fetchStats = async () => {
-	const response = await axiosClient.get('/stats');
-	return response.data;
-};
+export type StatsFacets = { regions: string[]; industries: string[] }
 
-export const fetchHeatmap = async (filters: AnalyticsFilters) => [];
-export const fetchDistribution = async (filters: AnalyticsFilters) => [];
+export const fetchStatsFacets = async (): Promise<StatsFacets> => {
+	const { data } = await axiosClient.get<StatsFacets>("/stats/facets")
+	return data
+}

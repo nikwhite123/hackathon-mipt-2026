@@ -1,0 +1,1 @@
+var e={workstation:`Рабочая станция`,vpn_gateway:`VPN / сеть`,mail_gateway:`Почта`,web_portal:`Веб / портал`,db_server:`БД`,file_server:`Файлы`,crm:`CRM`};export{e as t};

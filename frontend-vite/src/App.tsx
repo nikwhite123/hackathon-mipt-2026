@@ -1,68 +1,86 @@
-import { useState } from "react"
-import { Layout } from "antd"
-import { Route, Routes, BrowserRouter } from "react-router-dom"
-import HomePage from "./pages/HomePage"
-import InfrastructureAuditPage from "./pages/InfrastructureAuditPage"
-import EarlyWarningPage from "./pages/EarlyWarningPage"
-import SecurityAuditPage from "./pages/SecurityAuditPage"
-import RadarPage from "./pages/RadarPage"
-import AnalyticsDashboardPage from "./pages/AnalyticsDashboardPage"
+/**
+ * Root layout: lazy routes behind auth, landing when logged out, PDF export hook for reports.
+ */
+import { lazy, Suspense, useState } from "react"
+import { Layout, Spin } from "antd"
+import { Navigate, Route, Routes, BrowserRouter } from "react-router-dom"
 import NotFoundPage from "./pages/NotFoundPage"
-// import Sidebar from "./components/layout/Sidebar"
 import AppHeader from "./components/layout/Header"
-import GlossaryPage from "./pages/GlossaryPage"
-import SettingsPage from "./pages/SettingsPage"
+import { SessionProvider } from "./components/SessionProvider"
+import { useAuthStore } from "./store/authStore"
+import { HiddenReportEngine } from "./components/report/HiddenReportEngine"
 
-function App() {
-  const [isExporting, setIsExporting] = useState(false);
+const HomePage = lazy(() => import("./pages/HomePage"))
+const InfrastructureAuditPage = lazy(() => import("./pages/InfrastructureAuditPage"))
+const SecurityAuditPage = lazy(() => import("./pages/SecurityAuditPage"))
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"))
+const GlossaryPage = lazy(() => import("./pages/GlossaryPage"))
+const LandingPage = lazy(() => import("./pages/LandingPage"))
+
+const routeFallback = (
+  <div style={{ display: "flex", justifyContent: "center", padding: "48px 0" }}>
+    <Spin size="large" />
+  </div>
+)
+
+/** Main shell with header, routes, and optional hidden report renderer for PDF export. */
+function AuthenticatedApp() {
+  const [isExporting, setIsExporting] = useState(false)
+
   return (
-    <BrowserRouter>
-      <Layout style={{ minHeight: "100vh" }}>
-        <Layout>
-          <AppHeader onStartExport={() => setIsExporting(true)} onEndExport={() => setIsExporting(false)} />
-          <Layout.Content className="rt-content">
-            <div className="rt-content-outer">
-              <div className="rt-content-inner">
+    <Layout className="app-shell" style={{ minHeight: "100vh" }}>
+      <Layout>
+        <AppHeader onStartExport={() => setIsExporting(true)} onEndExport={() => setIsExporting(false)} />
+        <Layout.Content className="rt-content">
+          <div className="rt-content-outer">
+            <div className="rt-content-inner">
+              <Suspense fallback={routeFallback}>
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/infrastructure" element={<InfrastructureAuditPage />} />
-                  <Route path="/early-warning" element={<EarlyWarningPage />} />
+                  <Route path="/early-warning" element={<Navigate to="/infrastructure" replace />} />
                   <Route path="/security-audit" element={<SecurityAuditPage />} />
-                  <Route path="/radar" element={<RadarPage />} />
-                  <Route path="/analytics" element={<AnalyticsDashboardPage />} />
+                  <Route path="/radar" element={<Navigate to="/infrastructure" replace />} />
+                  <Route path="/analytics" element={<AnalyticsPage />} />
                   <Route path="/glossary" element={<GlossaryPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/settings" element={<Navigate to="/infrastructure" replace />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
-              </div>
-            </div>
-          </Layout.Content>
-        </Layout>
-        {isExporting && (
-          <div
-            id="hidden-report-engine"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '1600px',
-              zIndex: -1000,
-              visibility: 'visible',
-              opacity: 1,
-              background: '#fff',
-              display: 'flex', 
-              flexDirection: 'column'
-            }}
-          >
-            <div id="full-analytics-report" style={{ width: '100%' }} data-report-name="Аналитический отчет по угрозам">
-              <AnalyticsDashboardPage />
-            </div>
-            <div id="full-dashboard-report" style={{ width: '100%' }} data-report-name="Общая статистика защищенности (Главная)">
-              <HomePage />
+              </Suspense>
             </div>
           </div>
-        )}
+        </Layout.Content>
       </Layout>
+      {isExporting ? <HiddenReportEngine /> : null}
+    </Layout>
+  )
+}
+
+/** Landing + redirect when anonymous; full app when `user` is set. */
+function RoutedApp() {
+  const user = useAuthStore((s) => s.user)
+
+  if (!user) {
+    return (
+      <Suspense fallback={routeFallback}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    )
+  }
+
+  return <AuthenticatedApp />
+}
+
+/** Router shell and session bootstrap (see SessionProvider). */
+function App() {
+  return (
+    <BrowserRouter>
+      <SessionProvider>
+        <RoutedApp />
+      </SessionProvider>
     </BrowserRouter>
   )
 }

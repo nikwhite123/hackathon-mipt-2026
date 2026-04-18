@@ -1,3 +1,6 @@
+/**
+ * Themed Ant Design Card wrapper with shared `rt.module.css` surface styles.
+ */
 import { Card } from "antd"
 import cls from "../Styles/rt.module.css"
 import cn from "../utils/cn"

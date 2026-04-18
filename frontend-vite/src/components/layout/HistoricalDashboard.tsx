@@ -1,131 +1,111 @@
-import React, { useState } from "react";
+/**
+ * Historical trends tab: Recharts time series fed by filtered `/stats` aggregates.
+ */
+import { Card, Spin, Typography, Alert } from "antd"
+import { useMemo } from "react"
 import {
-    AreaChart,
-    Area,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    BarChart,
-    Bar,
-} from "recharts";
-import { Card, Select, Typography, Space } from "antd";
+	Area,
+	AreaChart,
+	Bar,
+	BarChart,
+	CartesianGrid,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+	YAxis,
+} from "recharts"
+import DashboardFiltersBar from "../dashboard/DashboardFiltersBar"
+import { TARGET_OBJECT_LABELS } from "../../constants/targetObjectLabels"
+import { useDashboardStats } from "../../hooks/useDashboardStats"
+import { useAuthStore } from "../../store/authStore"
 
-const { Title } = Typography;
-const { Option } = Select;
+const { Title } = Typography
 
-const objectDistribution = [
-    { object: "Server", attacks: 45 },
-    { object: "Application", attacks: 30 },
-    { object: "Database", attacks: 25 },
-];
+type StatsPayload = {
+	total_incidents?: number
+	incidents_by_month?: Record<string, number>
+	incidents_by_target_object?: Record<string, number>
+}
 
-const areaData = [
-    { date: "01.04", server: 0.7, application: 0.5, database: 0.2 },
-    { date: "02.04", server: 0.6, application: 0.4, database: 0.3 },
-    { date: "03.04", server: 0.8, application: 0.3, database: 0.4 },
-    { date: "04.04", server: 0.9, application: 0.6, database: 0.3 },
-    { date: "05.04", server: 0.5, application: 0.5, database: 0.4 },
-];
+type Props = {
+	hideFilters?: boolean
+}
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-        return (
-            <div
-                style={{
-                    backgroundColor: "#fff",
-                    padding: "8px 12px",
-                    borderRadius: "6px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                    border: "1px solid #e0e0e0",
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    color: "#333",
-                }}
-            >
-                <div><strong>{label}</strong></div>
-                {payload.map((p: any) => (
-                    <div key={p.dataKey} style={{ color: p.stroke }}>
-                        {p.dataKey.charAt(0).toUpperCase() + p.dataKey.slice(1)}: {(p.value * 100).toFixed(0)}%
-                    </div>
-                ))}
-            </div>
-        );
-    }
-    return null;
-};
+export default function HistoricalDashboard({ hideFilters = false }: Props) {
+	const { user } = useAuthStore()
+	const { stats, loading, loadError: error } = useDashboardStats<StatsPayload>()
 
-const HistoricalDashboard: React.FC = () => {
-    const [season, setSeason] = useState<string>("all");
-    const [threatType, setThreatType] = useState<string>("all");
+	const areaData = useMemo(() => {
+		const raw = stats?.incidents_by_month
+		if (!raw || Object.keys(raw).length === 0) return []
+		return Object.keys(raw)
+			.sort()
+			.map((ym) => ({ date: ym, incidents: Number(raw[ym]) }))
+	}, [stats])
 
-    return (
-        <div style={{ padding: 24, maxWidth: 1200, margin: "0 auto" }}>
-            <Title level={2}>Дашборд исторической аналитики</Title>
+	const barData = useMemo(() => {
+		const raw = stats?.incidents_by_target_object
+		if (!raw) return []
+		return Object.entries(raw).map(([key, attacks]) => ({
+			object: TARGET_OBJECT_LABELS[key] ?? key,
+			attacks: Number(attacks),
+		}))
+	}, [stats])
 
-            <Space style={{ marginBottom: 24 }}>
-                <Select value={season} onChange={setSeason} style={{ width: 160 }}>
-                    <Option value="all">Все сезоны</Option>
-                    <Option value="winter">Зима</Option>
-                    <Option value="spring">Весна</Option>
-                    <Option value="summer">Лето</Option>
-                    <Option value="autumn">Осень</Option>
-                </Select>
+	return (
+		<div style={{ padding: 24, maxWidth: 1200, margin: "0 auto" }}>
+			<Title level={2}>Дашборд исторической аналитики</Title>
+			<Typography.Paragraph type="secondary">
+				Данные из базы по организации, в которой вы зарегистрированы.
+				{hideFilters
+					? " Фильтры выборки заданы на вкладке «Обзор»."
+					: " Фильтры уходят в SQL на сервере."}
+			</Typography.Paragraph>
 
-                <Select value={threatType} onChange={setThreatType} style={{ width: 200 }}>
-                    <Option value="all">Все типы угроз</Option>
-                    <Option value="malware">Вредоносное ПО</Option>
-                    <Option value="phishing">Фишинг</Option>
-                    <Option value="ddos">DDoS</Option>
-                </Select>
-            </Space>
+			{!hideFilters && user ? <DashboardFiltersBar /> : null}
+			{error ? <Alert type="error" message={error} showIcon style={{ marginBottom: 16 }} /> : null}
 
-            <Card style={{ marginBottom: 24, borderRadius: 12, padding: 20 }}>
-                <Title level={4}>Прогноз атак на объекты</Title>
-                <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={areaData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
-                        <defs>
-                            <linearGradient id="colorServer" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#6d28d9" stopOpacity={0.6} />
-                                <stop offset="95%" stopColor="#c4b5fd" stopOpacity={0.1} />
-                            </linearGradient>
-                            <linearGradient id="colorApplication" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.6} />
-                                <stop offset="95%" stopColor="#a7f3d0" stopOpacity={0.1} />
-                            </linearGradient>
-                            <linearGradient id="colorDatabase" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.6} />
-                                <stop offset="95%" stopColor="#fde68a" stopOpacity={0.1} />
-                            </linearGradient>
-                        </defs>
+			<Spin spinning={loading}>
+				<Card style={{ marginBottom: 24, borderRadius: 12, padding: 20 }}>
+					<Title level={4}>Инциденты по месяцам (выборка)</Title>
+					{areaData.length === 0 ? (
+						<Typography.Text type="secondary">Нет дат инцидентов для построения ряда.</Typography.Text>
+					) : (
+						<ResponsiveContainer width="100%" height={300}>
+							<AreaChart data={areaData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+								<defs>
+									<linearGradient id="colorIncidents" x1="0" y1="0" x2="0" y2="1">
+										<stop offset="5%" stopColor="#7733FF" stopOpacity={0.5} />
+										<stop offset="95%" stopColor="#7733FF" stopOpacity={0.05} />
+									</linearGradient>
+								</defs>
+								<CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+								<XAxis dataKey="date" tick={{ fontSize: 12, fill: "#666" }} tickLine={false} axisLine={false} />
+								<YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#666" }} tickLine={false} axisLine={false} />
+								<Tooltip />
+								<Area type="monotone" dataKey="incidents" stroke="#7733FF" fill="url(#colorIncidents)" />
+							</AreaChart>
+						</ResponsiveContainer>
+					)}
+				</Card>
 
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#666" }} tickLine={false} axisLine={false} />
-                        <YAxis tick={{ fontSize: 12, fill: "#666" }} tickLine={false} axisLine={false} domain={[0, 1]} tickFormatter={(value) => `${value * 100}%`} />
-                        <Tooltip content={<CustomTooltip />} />
-
-                        <Area type="monotone" dataKey="server" stroke="#6d28d9" fill="url(#colorServer)" />
-                        <Area type="monotone" dataKey="application" stroke="#10b981" fill="url(#colorApplication)" />
-                        <Area type="monotone" dataKey="database" stroke="#f59e0b" fill="url(#colorDatabase)" />
-                    </AreaChart>
-                </ResponsiveContainer>
-            </Card>
-
-            <Card style={{ borderRadius: 12, padding: 20 }}>
-                <Title level={4}>Распределение атак по объектам воздействия</Title>
-                <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={objectDistribution}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis dataKey="object" tick={{ fontSize: 12, fill: "#666" }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 12, fill: "#666" }} axisLine={false} tickLine={false} />
-                        <Tooltip />
-                        <Bar dataKey="attacks" fill="#6d28d9" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </Card>
-        </div>
-    );
-};
-
-export default HistoricalDashboard;
+				<Card style={{ borderRadius: 12, padding: 20 }}>
+					<Title level={4}>Распределение по объектам воздействия</Title>
+					{barData.length === 0 ? (
+						<Typography.Text type="secondary">Нет данных.</Typography.Text>
+					) : (
+						<ResponsiveContainer width="100%" height={280}>
+							<BarChart data={barData}>
+								<CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+								<XAxis dataKey="object" tick={{ fontSize: 11, fill: "#666" }} axisLine={false} tickLine={false} />
+								<YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#666" }} axisLine={false} tickLine={false} />
+								<Tooltip />
+								<Bar dataKey="attacks" fill="#FF4F12" radius={[6, 6, 0, 0]} />
+							</BarChart>
+						</ResponsiveContainer>
+					)}
+				</Card>
+			</Spin>
+		</div>
+	)
+}

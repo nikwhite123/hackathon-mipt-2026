@@ -1,25 +1,37 @@
+/**
+ * Security audit: vulnerability-to-threat mapping table from `/vulnerabilities/map`.
+ */
 import { Table, Tag, Space, Typography, Badge } from "antd"
 import { useEffect, useState } from "react"
-import { threatService } from "../api/threatService"
+import { threatService, type IVulnerabilityMapResponse } from "../api/threatService"
+import { useAuthStore } from "../store/authStore"
 import Page from "../ui/Page"
 import RTCard from "../ui/RTCard"
 
 const { Text } = Typography;
-const RT_ORANGE = '#FF4F12';
 const RT_PURPLE = '#7733FF';
+type MapItem = IVulnerabilityMapResponse["items"][number]
+type VulnMatch = MapItem["matches"][number]
 
 export default function SecurityAuditPage() {
-  const [mapData, setMapData] = useState<any[]>([]);
+  const { user } = useAuthStore()
+  const [mapData, setMapData] = useState<MapItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) {
+      setMapData([])
+      setLoading(false)
+      return
+    }
+    setLoading(true)
     threatService.getVulnerabilityMap()
       .then(data => {
-        setMapData(data.items); // Берем items из твоего JSON
+        setMapData(data.items)
       })
       .catch(err => console.error("Ошибка карты:", err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   const columns = [
     { 
@@ -37,7 +49,7 @@ export default function SecurityAuditPage() {
     { 
       title: "Связанные угрозы", 
       key: "matches_count",
-      render: (_, record: any) => (
+      render: (_: unknown, record: MapItem) => (
         <Space>
           <Badge count={record.matches.length} style={{ backgroundColor: RT_PURPLE }} />
           <Text type="secondary">угроз(ы) обнаружено</Text>
@@ -61,11 +73,14 @@ export default function SecurityAuditPage() {
                   <Text strong style={{ display: 'block', marginBottom: 8 }}>
                     Детальный анализ угроз для уязвимости {record.vulnerability_code}:
                   </Text>
-                  {record.matches.map((m: any, i: number) => (
+                  {record.matches.map((m: VulnMatch, i: number) => (
                     <div key={i} style={{ marginBottom: 12 }}>
-                      <Tag color="orange">{m.threat_id || `ID-${i}`}</Tag>
-                      <Text strong>{m.name}</Text>
-                      <p style={{ fontSize: '12px', color: '#666', margin: '4px 0 0 0' }}>{m.description}</p>
+                      <Tag color="orange">{m.threat?.threat_id || `ID-${i}`}</Tag>
+                      <Text strong>{m.threat?.name}</Text>
+                      <p style={{ fontSize: '12px', color: '#666', margin: '4px 0 0 0' }}>{m.threat?.description}</p>
+                      <p style={{ fontSize: '12px', color: '#666', margin: '4px 0 0 0' }}>
+                        Совпадение: {Math.round((m.match_score ?? 0) * 100)}%. {m.reason}
+                      </p>
                     </div>
                   ))}
                 </div>

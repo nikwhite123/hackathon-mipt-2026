@@ -17,17 +17,21 @@
 }
 
 .contentOuter {
-  background: #F8F9FB;
+  background: #f8f9fb;
   min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 .contentInner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 32px 32px;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 32px clamp(16px, 3vw, 48px);
+  box-sizing: border-box;
 }
 @media (min-width: 1280px) {
   .contentInner {
-    padding: 40px 48px;
+    padding: 40px clamp(24px, 4vw, 72px);
   }
 }
 

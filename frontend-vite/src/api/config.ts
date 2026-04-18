@@ -1,24 +1,29 @@
+/**
+ * API base URL from Vite (`VITE_API_URL`) or Node (`REACT_APP_API_URL`), plus backend toggle flags.
+ */
 const viteEnv =
-	typeof import.meta !== 'undefined' ? (import.meta as { env?: Record<string, string | undefined> }).env : undefined
+  typeof import.meta !== 'undefined'
+    ? (import.meta as { env?: Record<string, string | undefined> }).env
+    : undefined
 
 function getNodeEnv(): Record<string, string | undefined> | undefined {
-	if (typeof globalThis === 'undefined' || !('process' in globalThis)) return undefined
-	return (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
+  if (typeof globalThis === 'undefined' || !('process' in globalThis)) return undefined
+  return (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
 }
 
 const nodeEnv = getNodeEnv()
 
 export const backendEnabled =
-	Boolean(viteEnv?.VITE_BACKEND === 'true' || nodeEnv?.REACT_APP_BACKEND === 'true')
+  viteEnv?.VITE_BACKEND === 'false' || nodeEnv?.REACT_APP_BACKEND === 'false' ? false : true
 
-const DEFAULT_API_URL = 'http://127.0.0.1:8001';
+const DEFAULT_API_URL = 'http://127.0.0.1:8000'
 
 export function getApiBaseUrl(): string {
-	return (
-		viteEnv?.VITE_API_URL ||
-		nodeEnv?.REACT_APP_API_URL ||
-		DEFAULT_API_URL
-	)
+  const fromVite = viteEnv?.VITE_API_URL
+  if (fromVite !== undefined && fromVite !== null && String(fromVite).trim() !== '') {
+    return String(fromVite).trim()
+  }
+  return nodeEnv?.REACT_APP_API_URL || DEFAULT_API_URL
 }
 
-export const API_BASE_URL = getApiBaseUrl();
+export const API_BASE_URL = getApiBaseUrl()

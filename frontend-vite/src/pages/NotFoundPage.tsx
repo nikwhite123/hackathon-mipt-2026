@@ -1,3 +1,6 @@
+/**
+ * 404 fallback for unknown client-side routes.
+ */
 import { Result, Button } from "antd"
 import { Link } from "react-router-dom"
 

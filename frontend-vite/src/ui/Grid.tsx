@@ -1,3 +1,6 @@
+/**
+ * Simple CSS-grid wrapper and cell for consistent dashboard card layouts.
+ */
 import styles from "../Styles/rt.module.css"
 import cn from "../utils/cn"
 
