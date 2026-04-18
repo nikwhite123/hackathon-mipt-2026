@@ -1,31 +1,86 @@
+"""Incident aggregations and heuristics for attack method, target, and risk level."""
+
 from __future__ import annotations
 
-from app.repositories.data_repository import DataRepository
-from app.schemas import ThreatStats
+import pandas as pd
+from sqlalchemy.orm import Session
+
+from app.repositories.data_repository import DataRepository, IncidentQueryFilters
+from app.schemas import ThreatMethod, ThreatStats
 
 
 class AnalyticsService:
+    """Merge incidents with the registry and compute ThreatStats fields."""
+
     def __init__(self, repository: DataRepository):
         self.repository = repository
 
-    def build_stats(self, organization_code: str | None = None) -> ThreatStats:
-        incidents = self.repository.load_incidents_by_organization_code(organization_code)
-        registry = self.repository.load_fstec_registry()[['threat_code', 'name', 'description', 'object_of_impact']]
+    @staticmethod
+    def _empty_threat_stats() -> ThreatStats:
+        return ThreatStats(
+            total_incidents=0,
+            top_attack_method='malware',
+            top_target_object='workstation',
+            risk_distribution={},
+            incidents_by_season={},
+            incidents_by_time_of_day={},
+            incidents_by_hour={},
+            incidents_by_region={},
+            incidents_by_target_object={},
+            incidents_by_month={},
+            incidents_by_attack_method={},
+        )
+
+    def build_stats(
+        self,
+        organization_code: str | None = None,
+        *,
+        incident_filters: IncidentQueryFilters | None = None,
+        attack_method: ThreatMethod | None = None,
+        db: Session | None = None,
+    ) -> ThreatStats:
+        """Incident summary from the DB for the JWT organization; SQL filters; attack_method after registry join."""
+        incidents = self.repository.load_incidents_by_organization_code(
+            organization_code,
+            db=db,
+            incident_filters=incident_filters,
+        )
+        registry = self.repository.load_fstec_registry(db=db)[["threat_code", "name", "description", "object_of_impact"]]
         dataset = incidents.merge(registry, on='threat_code', how='left')
+        if dataset.empty:
+            return self._empty_threat_stats()
+
         dataset['attack_method'] = dataset.apply(self._detect_attack_method, axis=1)
         dataset['target_object'] = dataset.apply(self._detect_target_object, axis=1)
         dataset['risk_level'] = dataset.apply(self._detect_risk_level, axis=1)
 
+        if attack_method is not None:
+            dataset = dataset[dataset['attack_method'] == attack_method]
+        if dataset.empty:
+            return self._empty_threat_stats()
+
+        incidents_by_month: dict[str, int] = {}
+        if 'incident_date' in dataset.columns and dataset['incident_date'].notna().any():
+            dated = dataset.dropna(subset=['incident_date']).copy()
+            if not dated.empty:
+                dated['ym'] = pd.to_datetime(dated['incident_date'], errors='coerce').dt.strftime('%Y-%m')
+                incidents_by_month = dated.groupby('ym').size().sort_index().astype(int).to_dict()
+
+        incidents_by_hour = dataset.groupby('hour').size().sort_index().astype(int).to_dict()
+        incidents_by_hour = {int(k): int(v) for k, v in incidents_by_hour.items()}
+
         return ThreatStats(
             total_incidents=len(dataset),
-            top_attack_method=dataset['attack_method'].value_counts().idxmax() if not dataset.empty else 'malware',
-            top_target_object=dataset['target_object'].value_counts().idxmax() if not dataset.empty else 'workstation',
+            top_attack_method=dataset['attack_method'].value_counts().idxmax(),
+            top_target_object=dataset['target_object'].value_counts().idxmax(),
             risk_distribution=dataset['risk_level'].value_counts().sort_index().to_dict(),
             incidents_by_season=dataset['season'].value_counts().sort_index().to_dict(),
             incidents_by_time_of_day=dataset['time_of_day'].value_counts().sort_index().to_dict(),
-            incidents_by_hour=dataset.groupby('hour').size().sort_index().astype(int).to_dict(),
+            incidents_by_hour=incidents_by_hour,
             incidents_by_region=dataset['region'].value_counts().head(15).astype(int).to_dict(),
             incidents_by_target_object=dataset['target_object'].value_counts().sort_index().astype(int).to_dict(),
+            incidents_by_month=incidents_by_month,
+            incidents_by_attack_method=dataset['attack_method'].value_counts().sort_index().astype(int).to_dict(),
         )
 
     @staticmethod

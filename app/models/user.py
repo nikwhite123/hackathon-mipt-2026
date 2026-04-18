@@ -1,3 +1,5 @@
+"""User ORM model scoped to an organization."""
+
 from __future__ import annotations
 
 from sqlalchemy import ForeignKey, String
@@ -7,6 +9,8 @@ from app.db.base import Base
 
 
 class User(Base):
+    """Application user; email is unique."""
+
     __tablename__ = 'users'
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

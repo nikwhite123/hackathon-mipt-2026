@@ -1,37 +1,23 @@
+"""CLI: run bootstrap seed only (migrations: `alembic upgrade head` or app start with RUN_MIGRATIONS_ON_START)."""
+
 from __future__ import annotations
 
-import pandas as pd
-from sqlalchemy import create_engine, text
+import sys
+from pathlib import Path
 
-from app.db.base import Base
-from app.models import Organization, User  # noqa: F401
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-DATABASE_URL = 'postgresql+psycopg2://app_user:app_password@db:5432/rostelecom_db'
-INCIDENTS_PATH = 'data/incidents_2000.xlsx'
+from app.core.settings import settings
+from app.db.startup import run_bootstrap_seed
 
 
 def main() -> None:
-    engine = create_engine(DATABASE_URL, future=True)
-    Base.metadata.create_all(bind=engine)
-
-    incidents = pd.read_excel(INCIDENTS_PATH)
-    organizations = (
-        incidents[['Код предприятия']]
-        .dropna()
-        .astype({'Код предприятия': int})
-        .drop_duplicates()
-        .sort_values('Код предприятия')
-    )
-
-    with engine.begin() as connection:
-        existing = connection.execute(text('SELECT COUNT(*) FROM organizations')).scalar_one()
-        if existing == 0:
-            for code in organizations['Код предприятия'].tolist():
-                connection.execute(
-                    text('INSERT INTO organizations (name, code) VALUES (:name, :code)'),
-                    {'name': f'Организация {code}', 'code': str(code)},
-                )
+    """Populate reference tables from files when empty; prints DATABASE_URL on success."""
+    run_bootstrap_seed()
+    print(f"Bootstrap seed completed for {settings.database_url}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

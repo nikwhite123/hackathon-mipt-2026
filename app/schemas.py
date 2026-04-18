@@ -1,9 +1,40 @@
+"""Pydantic models for API request/response bodies and JSON configs (pydantic v1 and v2 field_validator)."""
+
 from __future__ import annotations
 
 from datetime import datetime
 from typing import Dict, List, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, EmailStr
+try:
+    from pydantic import field_validator
+    PYDANTIC_V2 = True
+except ImportError:
+    from pydantic import validator as field_validator
+    PYDANTIC_V2 = False
+
+
+def _password_complexity(value: str) -> str:
+    if len(value) < 10:
+        raise ValueError("Password must be at least 10 characters long.")
+    if not any(c.isupper() for c in value):
+        raise ValueError("Password must contain at least one uppercase letter.")
+    if not any(c.islower() for c in value):
+        raise ValueError("Password must contain at least one lowercase letter.")
+    if not any(c.isdigit() for c in value):
+        raise ValueError("Password must contain at least one digit.")
+    return value
+
+
+def _person_name(value: str, label: str) -> str:
+    s = value.strip()
+    if len(s) < 2:
+        raise ValueError(f"{label}: at least 2 characters after trimming whitespace.")
+    if not any(ch.isalpha() for ch in s):
+        raise ValueError(f"{label} must contain at least one letter.")
+    if len(s) > 100:
+        raise ValueError(f"{label}: must be at most 100 characters.")
+    return s
 
 Severity = Literal["low", "medium", "high", "critical"]
 ThreatMethod = Literal[
@@ -42,7 +73,7 @@ class ThreatReference(BaseModel):
     severity: Severity
     likely_targets: List[TargetType]
     common_methods: List[ThreatMethod]
-    source: str = "FSTEC mock registry"
+    source: str = "FSTEC threat catalog"
 
 
 
@@ -52,20 +83,89 @@ class OrganizationResponse(BaseModel):
     name: str
     code: str | None = None
 
-    model_config = {"from_attributes": True}
+    if PYDANTIC_V2:
+        model_config = {"from_attributes": True}
+    else:
+        class Config:
+            orm_mode = True
 
 
 class UserRegisterRequest(BaseModel):
-    first_name: str = Field(..., min_length=1, max_length=100)
-    last_name: str = Field(..., min_length=1, max_length=100)
-    email: str = Field(..., examples=["user@example.com"])
-    password: str = Field(..., min_length=6, max_length=128)
-    organization_id: int = Field(..., ge=1)
+    first_name: str = Field(..., min_length=2, max_length=100)
+    last_name: str = Field(..., min_length=2, max_length=100)
+    email: EmailStr
+    password: str = Field(..., min_length=10, max_length=128)
+    organization_code: str = Field(..., min_length=1, max_length=64)
+
+    if PYDANTIC_V2:
+        @field_validator("first_name", "last_name", mode="before")
+        @classmethod
+        def _strip_person_fields(cls, value):
+            return value.strip() if isinstance(value, str) else value
+
+        @field_validator("first_name")
+        @classmethod
+        def _validate_first_name(cls, value: str) -> str:
+            return _person_name(value, "First name")
+
+        @field_validator("last_name")
+        @classmethod
+        def _validate_last_name(cls, value: str) -> str:
+            return _person_name(value, "Last name")
+
+        @field_validator("email", mode="before")
+        @classmethod
+        def _normalize_email_register(cls, value):
+            return value.strip().lower() if isinstance(value, str) else value
+
+        @field_validator("password")
+        @classmethod
+        def _validate_password_register(cls, value: str) -> str:
+            return _password_complexity(value)
+
+        @field_validator("organization_code", mode="before")
+        @classmethod
+        def _strip_org_code(cls, value):
+            return value.strip() if isinstance(value, str) else value
+    else:
+        @field_validator("first_name", "last_name", pre=True)
+        def _strip_person_fields(cls, value):  # type: ignore[misc]
+            return value.strip() if isinstance(value, str) else value
+
+        @field_validator("first_name")
+        def _validate_first_name(cls, value: str) -> str:  # type: ignore[misc]
+            return _person_name(value, "First name")
+
+        @field_validator("last_name")
+        def _validate_last_name(cls, value: str) -> str:  # type: ignore[misc]
+            return _person_name(value, "Last name")
+
+        @field_validator("email", pre=True)
+        def _normalize_email_register(cls, value):  # type: ignore[misc]
+            return value.strip().lower() if isinstance(value, str) else value
+
+        @field_validator("password")
+        def _validate_password_register(cls, value: str) -> str:  # type: ignore[misc]
+            return _password_complexity(value)
+
+        @field_validator("organization_code", pre=True)
+        def _strip_org_code(cls, value):  # type: ignore[misc]
+            return value.strip() if isinstance(value, str) else value
 
 
 class LoginRequest(BaseModel):
-    email: str
-    password: str
+    email: EmailStr
+    password: str = Field(..., min_length=1, max_length=128)
+
+    if PYDANTIC_V2:
+        @field_validator("email", mode="before")
+        @classmethod
+        def _normalize_email_login(cls, value):
+            return value.strip().lower() if isinstance(value, str) else value
+    else:
+        @field_validator("email", pre=True)
+        def _normalize_email_login(cls, value):  # type: ignore[misc]
+            return value.strip().lower() if isinstance(value, str) else value
 
 
 class UserResponse(BaseModel):
@@ -75,6 +175,7 @@ class UserResponse(BaseModel):
     email: str
     organization_id: int
     organization_name: str
+    organization_code: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -85,8 +186,23 @@ class TokenResponse(BaseModel):
 class UserLoginResponse(TokenResponse):
     user: UserResponse
 
+
+class OrganizationSettingsRequest(BaseModel):
+    region: str = Field(..., min_length=1, max_length=64)
+    industry: str = Field(..., min_length=1, max_length=64)
+    host_count: int = Field(..., ge=1)
+    technologies: List[str] = Field(default_factory=list)
+
+
+class OrganizationSettingsResponse(OrganizationSettingsRequest):
+    organization_id: int
+
 class PredictRequest(BaseModel):
-    organization_id: str = Field(..., examples=["org-001"])
+    organization_id: str = Field(
+        ...,
+        examples=["org-001"],
+        description="Organization code from the directory. The legacy field name is kept for backward compatibility.",
+    )
     region: str = Field(..., examples=["Moscow"])
     industry: str = Field(..., examples=["telecom"])
     season: SeasonType
@@ -96,6 +212,11 @@ class PredictRequest(BaseModel):
     has_external_access: bool = True
     privileged_accounts_count: int = Field(..., ge=0, examples=[12])
     known_vulnerabilities_count: int = Field(..., ge=0, examples=[3])
+    prefer_ml: bool = Field(
+        default=False,
+        description="If true, use the ML model for predicted target and attack method. "
+        "Risk score and attack time window remain heuristic.",
+    )
 
 
 class PredictTimeResponse(BaseModel):
@@ -153,6 +274,18 @@ class ThreatStats(BaseModel):
     incidents_by_hour: Dict[int, int]
     incidents_by_region: Dict[str, int]
     incidents_by_target_object: Dict[str, int]
+    incidents_by_month: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Keys are YYYY-MM strings; values are incident counts",
+    )
+    incidents_by_attack_method: Dict[str, int] = Field(default_factory=dict)
+
+
+class StatsFacetsResponse(BaseModel):
+    """Distinct region and industry values in incidents for the current organization (UI filter options)."""
+
+    regions: List[str]
+    industries: List[str]
 
 
 class InfrastructureVulnerability(BaseModel):
@@ -166,7 +299,21 @@ class InfrastructureVulnerability(BaseModel):
 
 
 class VulnerabilityMapRequest(BaseModel):
-    vulnerabilities: List[InfrastructureVulnerability] = Field(..., min_length=1)
+    vulnerabilities: List[InfrastructureVulnerability]
+
+    if PYDANTIC_V2:
+        @field_validator("vulnerabilities")
+        @classmethod
+        def validate_vulnerabilities_not_empty(cls, value: List[InfrastructureVulnerability]) -> List[InfrastructureVulnerability]:
+            if not value:
+                raise ValueError("At least one vulnerability is required")
+            return value
+    else:
+        @field_validator("vulnerabilities")
+        def validate_vulnerabilities_not_empty(cls, value: List[InfrastructureVulnerability]) -> List[InfrastructureVulnerability]:
+            if not value:
+                raise ValueError("At least one vulnerability is required")
+            return value
 
 
 class ThreatMatch(BaseModel):
@@ -190,8 +337,12 @@ class VulnerabilityMapResponse(BaseModel):
 
 
 class ErrorResponse(BaseModel):
+    """Unified API error shape (4xx/5xx and validation errors)."""
+
     detail: str
     errors: List[dict] | None = None
+    request_id: str | None = None
+    code: str | None = None
 
 
 class ThreatFilter(BaseModel):
@@ -200,11 +351,26 @@ class ThreatFilter(BaseModel):
 
 
 class RuleConfig(BaseModel):
-    tokens: List[str] = Field(..., min_length=1)
+    tokens: List[str]
     threat_id: str
     match_score: float = Field(..., ge=0, le=1)
     reason: str
     recommendation_method: ThreatMethod
+
+
+    if PYDANTIC_V2:
+        @field_validator("tokens")
+        @classmethod
+        def validate_tokens_not_empty(cls, value: List[str]) -> List[str]:
+            if not value:
+                raise ValueError("tokens must not be empty")
+            return value
+    else:
+        @field_validator("tokens")
+        def validate_tokens_not_empty(cls, value: List[str]) -> List[str]:
+            if not value:
+                raise ValueError("tokens must not be empty")
+            return value
 
 
 class ScoringConfig(BaseModel):
@@ -216,32 +382,71 @@ class ScoringConfig(BaseModel):
     confidence_multiplier: float = Field(..., ge=0, le=1)
     asset_criticality_by_target: Dict[TargetType, float]
 
-    @field_validator('asset_criticality_by_target')
-    @classmethod
-    def validate_asset_criticality(cls, value: Dict[TargetType, float]) -> Dict[TargetType, float]:
-        if any(score < 0 for score in value.values()):
-            raise ValueError('asset criticality values must be non-negative')
-        return value
+    if PYDANTIC_V2:
+        @field_validator('asset_criticality_by_target')
+        @classmethod
+        def validate_asset_criticality(cls, value: Dict[TargetType, float]) -> Dict[TargetType, float]:
+            if any(score < 0 for score in value.values()):
+                raise ValueError('asset criticality values must be non-negative')
+            return value
+    else:
+        @field_validator('asset_criticality_by_target')
+        def validate_asset_criticality(cls, value: Dict[TargetType, float]) -> Dict[TargetType, float]:
+            if any(score < 0 for score in value.values()):
+                raise ValueError('asset criticality values must be non-negative')
+            return value
 
 
 class ThreatCatalogConfig(BaseModel):
-    threats: List[ThreatReference] = Field(..., min_length=1)
+    threats: List[ThreatReference]
     recommendations: Dict[str, List[ProtectionRecommendation]]
 
-    @field_validator("recommendations")
-    @classmethod
-    def validate_recommendation_keys(
-        cls, value: Dict[str, List[ProtectionRecommendation]]
-    ) -> Dict[str, List[ProtectionRecommendation]]:
-        allowed = {
-            "phishing",
-            "brute_force",
-            "malware",
-            "credential_stuffing",
-            "ransomware",
-            "sql_injection",
-        }
-        invalid = sorted(set(value) - allowed)
-        if invalid:
-            raise ValueError(f"Unsupported recommendation keys: {invalid}")
-        return value
+    if PYDANTIC_V2:
+        @field_validator("threats")
+        @classmethod
+        def validate_threats_not_empty(cls, value: List[ThreatReference]) -> List[ThreatReference]:
+            if not value:
+                raise ValueError("threats must not be empty")
+            return value
+    else:
+        @field_validator("threats")
+        def validate_threats_not_empty(cls, value: List[ThreatReference]) -> List[ThreatReference]:
+            if not value:
+                raise ValueError("threats must not be empty")
+            return value
+
+    if PYDANTIC_V2:
+        @field_validator("recommendations")
+        @classmethod
+        def validate_recommendation_keys(
+            cls, value: Dict[str, List[ProtectionRecommendation]]
+        ) -> Dict[str, List[ProtectionRecommendation]]:
+            allowed = {
+                "phishing",
+                "brute_force",
+                "malware",
+                "credential_stuffing",
+                "ransomware",
+                "sql_injection",
+            }
+            invalid = sorted(set(value) - allowed)
+            if invalid:
+                raise ValueError(f"Unsupported recommendation keys: {invalid}")
+            return value
+    else:
+        @field_validator("recommendations")
+        def validate_recommendation_keys(
+            cls, value: Dict[str, List[ProtectionRecommendation]]
+        ) -> Dict[str, List[ProtectionRecommendation]]:
+            allowed = {
+                "phishing",
+                "brute_force",
+                "malware",
+                "credential_stuffing",
+                "ransomware",
+                "sql_injection",
+            }
+            invalid = sorted(set(value) - allowed)
+            if invalid:
+                raise ValueError(f"Unsupported recommendation keys: {invalid}")
+            return value
