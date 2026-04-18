@@ -1,70 +1,126 @@
-# 🛡 Ростелеком ИБ: Система прогнозирования угроз
+# Threat Analytics: прогноз угроз и аналитика ИБ
 
-Репозиторий проекта для хакатона по разработке предиктивной модели и аналитического приложения для ИБ.
-
----
-
-## Регламент работы с Git (Git Flow)
-
-Для обеспечения стабильности кода и чистоты истории мы используем строгую систему ветвления. **Прямые пуши в `main` запрещены.**
-
-### 1. Структура веток
-* **`main`** — Стабильная ветка. Сюда попадает только проверенный и оттестированный код перед защитой.
-* **`frontend`** — Стейджинг-ветка для фронтенд-разработки.
-* **`backend`** — Стейджинг-ветка для бэкенда и ML-логики.
-* **`analytics`** — Ветка для Jupyer-ноутбуков и EDA (аналитики).
-
-### 2. Создание фич (Feature-ветки)
-Любая новая задача (компонент, эндпоинт, модель) делается в отдельной ветке, созданной от соответствующей "родительской" ветки (`frontend` или `backend`).
-
-**Схема именования:** `тип/краткое-описание`
-* Например: `feat/login-page`, `fix/api-headers`, `ml/catboost-baseline`.
-
-### 3. Процесс слияния (Merge)
-1.  Вы закончили задачу в своей ветке (например, `feat/chart-ui`).
-2.  Делаете **Pull Request (PR)** в ветку своей подгруппы (например, в `frontend`).
-3.  Один из участников команды (или ментор) делает быстрый ревью.
-4.  После одобрения ветка мержится в `frontend`.
-5.  **В `main` код переносится только общим решением**, когда функционал полностью готов и протестирован.
+Проект для хакатона: веб-приложение для аналитики киберугроз и **прогнозирования сценариев атак** по контексту организации (регион, отрасль, инфраструктура, время и т.д.). На бэкенде — REST API с JWT, агрегаты по инцидентам в БД, каталог угроз, маппинг уязвимостей на угрозы и опциональная ML-ветка (RandomForest по истории инцидентов). На фронте — дашборды, раннее предупреждение, аудит, аналитика с отчётами и экспортом в PDF.
 
 ---
 
-## 📝 Правила хорошего тона
-1.  **Коммиты:** Пишем на английском или русском, но понятно (`feat: added main dashboard` вместо `fix: fixed stuff`).
-2.  **Чистота:** Перед мержем удаляйте закомментированный код и `console.log` / `print`.
-3.  **Синхронизация:** Перед началом работы делайте `git pull`, чтобы не ловить конфликты в конце дня.
+## Что умеет система
+
+- **Прогноз** (`POST /predict` и узкие эндпоинты `/predict/time`, `/target`, `/method`, `/recommendations`) — оценка риска, окна времени, цели и метода, рекомендации из каталога.
+- **Аналитика** — сводная статистика по инцидентам организации (`GET /stats`, фильтры, фасеты для UI).
+- **Каталог угроз** — `GET /threats` (справочник в духе ФСТЭК / доменные таблицы).
+- **Маппинг уязвимостей** — `POST /vulnerabilities/map`: сопоставление CVE-подобных записей с угрозами.
+- **Организации и пользователи** — регистрация по коду организации, JWT, настройки организации (`/org/settings`).
+- **Наблюдаемость** — `GET /health`, `GET /ready`, метрики Prometheus при `ENABLE_METRICS=true`.
 
 ---
 
-Готовый mock API для задачи.
+## Стек
 
-Что внутри:
-- `POST /predict` - mock-прогноз атаки
-- `GET /threats` - список угроз из mock-реестра ФСТЭК
-- `GET /stats` - агрегированная статистика по инцидентам
-- `POST /vulnerabilities/map` - маппинг уязвимостей инфраструктуры на угрозы
-- `GET /health` - healthcheck
+| Слой | Технологии |
+|------|------------|
+| Backend | Python 3.12, FastAPI, SQLAlchemy 2, Alembic, Pydantic v2 |
+| БД | PostgreSQL (прод/compose) или SQLite (удобно для разработки и тестов) |
+| ML | scikit-learn (опционально при достаточном объёме данных в БД) |
+| Frontend | React 19, Vite, TypeScript, Ant Design, Zustand |
+| Инфра | Docker Compose: API, nginx + статика фронта, Postgres, Prometheus |
 
-## Запуск backend
+Схема БД накатывается **только через Alembic**. При старте API: `alembic upgrade head` и при необходимости **сиды** (флаги `RUN_MIGRATIONS_ON_START`, `RUN_SEED_ON_START` в `.env.example`). Скрипт `scripts/init_db.py` — только наполнение данными, если миграции уже применены.
+
+---
+
+## Быстрый старт (всё в Docker)
+
+Из корня репозитория:
 
 ```bash
-python -m venv .venv  
-source .venv/bin/activate # Linux  
-.venv\Scripts\Activate.ps1 # Windows  
-pip install -r requirements.txt  
-uvicorn app.main:app --reload  
+docker compose up --build -d
 ```
 
-## Swagger
+| Сервис | URL |
+|--------|-----|
+| Веб-интерфейс | http://127.0.0.1:8080 (nginx проксирует `/api` на backend) |
+| Swagger | http://127.0.0.1:8000/docs |
+| Prometheus | http://127.0.0.1:9090 |
 
-После запуска:
-- Swagger UI: `http://127.0.0.1:8000/docs`
-- OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
+Контейнер `api` ждёт готовности Postgres (`WAIT_FOR_DB`), затем поднимается uvicorn; миграции и сиды выполняются в **lifespan** приложения (не дублируются в entrypoint).
 
-## Запуск frontend
+Ручной прогон при необходимости:
+
+```bash
+docker compose exec api python -m alembic upgrade head
+docker compose exec api python scripts/init_db.py
+```
+
+Переменные окружения и логирование: см. `.env.example` (`DATABASE_URL`, `JWT_SECRET_KEY`, `LOG_LEVEL`, `LOG_FORMAT`, `ENABLE_METRICS`, флаги миграций/сидов).
+
+---
+
+## Локальная разработка
+
+### 1. Репозиторий и Python
+
+```bash
+python -m venv .venv
+source .venv/bin/activate   # Linux / macOS
+# .venv\Scripts\Activate.ps1  # Windows
+
+pip install -r requirements.txt
+```
+
+### 2. База (Postgres в Docker)
+
+```bash
+cp .env.example .env
+# В .env: DATABASE_URL с postgresql+psycopg2:// и хост localhost:5433 (как в compose для сервиса db)
+
+chmod +x scripts/bootstrap_local.sh
+./scripts/bootstrap_local.sh
+```
+
+Скрипт поднимает только Postgres, применяет `alembic upgrade head`, заливает сиды и при желании прогоняет `verify_db.py`. Дальше API поднимаете сами — при старте снова выполнится upgrade (идемпотентно) и при необходимости сиды.
+
+### 3. Backend
+
+```bash
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+### 4. Frontend
 
 ```bash
 cd frontend-vite
 npm install
-npm run dev
+npm run dev -- --host 127.0.0.1 --port 5173
 ```
+
+Открыть: UI http://127.0.0.1:5173, Swagger http://127.0.0.1:8000/docs, Postgres с хоста — порт **5433**.
+
+### 5. Первый вход в UI
+
+1. Нажать «Войти», зарегистрироваться с **кодом организации** из сидов (как в исходных данных по организациям).
+2. При необходимости заполнить настройки организации.
+3. Проверить разделы аналитики, аудита и прогнозов.
+
+---
+
+## API
+
+- Интерактивная документация: `/docs`
+- OpenAPI JSON: `/openapi.json`
+
+---
+
+## Тесты и CI
+
+```bash
+python -m pytest tests/ -q
+```
+
+В CI: pytest для backend, для frontend — `npm ci && npm run lint && npm run build`.
+
+---
+
+## Git (кратко для команды)
+
+Стабильная ветка — `main`; прямые пуши в `main` нежелательны. Фичи — в отдельных ветках (`feat/...`, `fix/...`), слияние через PR. Коммиты — осмысленные сообщения, без мусорного закомментированного кода и отладочных `print`/`console.log` в мерже.

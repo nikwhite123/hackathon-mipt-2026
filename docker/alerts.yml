@@ -1,0 +1,10 @@
+groups:
+  - name: api-health
+    rules:
+      - alert: APIMetricsTargetDown
+        expr: up{job="api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus не получает метрики с job=api (сервис недоступен или /metrics недоступен)."
