@@ -29,6 +29,81 @@
 
 ---
 
+## Структура проекта
+
+Ниже только важные части репозитория, без служебного шума и сгенерённых файлов:
+
+```text
+hackathon-mipt-2026/
+├── app/                    # backend-приложение FastAPI
+│   ├── api/                # HTTP-роуты и API-модули
+│   ├── auth/               # JWT, зависимости авторизации, security helpers
+│   ├── core/               # настройки, логирование, общие core-компоненты
+│   ├── db/                 # engine/session, startup, миграционный bootstrap
+│   ├── middleware/         # request-level middleware
+│   ├── ml/                 # ML-логика и интеграция моделей
+│   ├── models/             # SQLAlchemy-модели БД
+│   ├── processors/         # вычислительные/скоринговые блоки
+│   ├── repositories/       # доступ к данным и конфигам
+│   ├── services/           # бизнес-логика приложения
+│   ├── strategies/         # стратегии маппинга и доменные алгоритмы
+│   ├── dependencies.py     # DI-сборка сервисов
+│   ├── schemas.py          # Pydantic-схемы запросов/ответов
+│   └── main.py             # точка входа FastAPI, маршруты и lifespan
+│
+├── frontend-vite/          # frontend на React + Vite
+│   └── src/
+│       ├── api/            # клиентские запросы к backend
+│       ├── components/     # UI-компоненты
+│       ├── hooks/          # react hooks
+│       ├── pages/          # экранные страницы
+│       ├── store/          # Zustand stores
+│       ├── types/          # TS-типы
+│       └── utils/          # фронтовые утилиты
+│
+├── cli/                    # Node.js CLI-клиент для API
+│   ├── examples/           # примеры payload-файлов
+│   ├── index.js            # точка входа CLI и описание команд
+│   └── package.json        # зависимости и bin-конфигурация для `rt`
+│
+├── alembic/                # миграции БД
+├── config/                 # JSON-конфиги каталога угроз, скоринга и правил
+├── data/                   # исходные Excel/табличные данные
+├── docker/                 # конфиги Prometheus/alerts и сопутствующая infra-конфигурация
+├── models/                 # сохранённые ML-артефакты
+├── notebooks/              # исследовательские и обучающие ноутбуки
+├── scripts/                # утилиты для bootstrap, DB, ML train/verify
+├── tests/                  # backend-тесты
+├── docker-compose.yml      # локальная инфраструктура
+├── requirements.txt        # Python-зависимости backend
+└── README.md               # документация по проекту
+```
+
+### Кто за что отвечает
+
+- `app/main.py` — главный backend entrypoint: поднимает FastAPI, регистрирует middleware, auth-router и основные ручки.
+- `app/api/` — отдельные API-модули, которые удобно развивать независимо от `main.py`.
+- `app/services/` — основная бизнес-логика. Если нужно понять, "как работает фича", чаще всего смотреть сюда.
+- `app/repositories/` — слой чтения/записи данных: БД, файлы, конфиги.
+- `app/models/` + `alembic/` — схема данных и её эволюция.
+- `app/schemas.py` — контракт API: что принимает и что возвращает backend.
+- `frontend-vite/src/pages/` — пользовательские разделы приложения.
+- `frontend-vite/src/components/` — переиспользуемые элементы интерфейса.
+- `cli/` — консольный клиент, который ходит в актуальные ручки backend и удобен для smoke-check / demo / ручной работы.
+- `notebooks/` — EDA, baseline-модели, экспериментальные пайплайны и обучение.
+- `models/` — сюда складываются сохранённые веса и ML-артефакты, которые использует backend.
+- `scripts/` — operational scripts: локальный bootstrap, инициализация БД, проверка и обучение моделей.
+
+### Куда смотреть в первую очередь
+
+- Если нужно менять API или бизнес-логику: `app/main.py`, `app/services/`, `app/schemas.py`
+- Если нужно менять данные, сиды или доступ к БД: `app/repositories/`, `app/models/`, `alembic/`, `scripts/`
+- Если нужно менять UI: `frontend-vite/src/pages/`, `frontend-vite/src/components/`, `frontend-vite/src/api/`
+- Если нужно менять CLI: `cli/index.js`
+- Если нужно разбираться с ML/ноутбуками: `app/ml/`, `notebooks/`, `models/`
+
+---
+
 ## Быстрый старт (всё в Docker)
 
 Из корня репозитория:
