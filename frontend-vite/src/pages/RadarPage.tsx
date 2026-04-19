@@ -6,9 +6,9 @@ import { useEffect, useMemo, useState } from "react"
 import type { Region } from "../constants/org"
 import { REGIONS, REGION_TIMEZONE_OFFSET_HOURS } from "../constants/org"
 import { ATTACK_METHOD_LABELS } from "../constants/attackMethodLabels"
-import DashboardFiltersBar from "../components/dashboard/DashboardFiltersBar"
+// import DashboardFiltersBar from "../components/dashboard/DashboardFiltersBar"
 import { useDashboardStats } from "../hooks/useDashboardStats"
-import { useAuthStore } from "../store/authStore"
+// import { useAuthStore } from "../store/authStore"
 import { useOrgStore } from "../store/orgStore"
 import RTCard from "../ui/RTCard"
 import style from "../Styles/HomePage.module.css"
@@ -31,7 +31,7 @@ function riskIndexFromStats(stats: StatsShape | null): number {
 }
 
 export default function RadarPage() {
-	const { user } = useAuthStore()
+	// const { user } = useAuthStore()
 	const { settings, update } = useOrgStore()
 	const [region, setRegion] = useState<Region>(settings.region)
 	const { stats, loadError } = useDashboardStats<StatsShape>()
@@ -58,7 +58,7 @@ export default function RadarPage() {
 
 	return (
 		<div className={style.infraAuditRightColumn}>
-			{user ? <DashboardFiltersBar /> : null}
+			{/*{user ? <DashboardFiltersBar /> : null}*/}
 			{loadError ? (
 				<RTCard>
 					<Typography.Text type="danger">{loadError}</Typography.Text>

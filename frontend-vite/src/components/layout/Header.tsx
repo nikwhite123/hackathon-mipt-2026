@@ -9,12 +9,14 @@ import {
     UserOutlined,
     DownloadOutlined,
 } from "@ant-design/icons";
+import { FilterOutlined } from "@ant-design/icons";
 import { useLocation, Link } from "react-router-dom";
 import styles from "../../Styles/HomePage.module.css";
 import { logout } from "../../api/authService";
 import { useAuthStore } from "../../store/authStore";
 import { useOrgStore } from "../../store/orgStore";
 import { buildNavigationItems, getSelectedNavigationKey } from "./navigation.tsx";
+import { useDashboardFiltersStore} from "../../store/dashboardFiltersStore.ts";
 
 const { Header } = Layout
 
@@ -29,6 +31,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onStartExport, onEndExport }) => 
     const { user, setUser } = useAuthStore();
     const setOrganizationCode = useOrgStore((s) => s.setOrganizationCode)
     const selectedKey = getSelectedNavigationKey(pathname)
+    const { toggleFiltersPanel, filtersPanelExpanded } = useDashboardFiltersStore();
+    const isAnalyticsPage = pathname === "/analytics" || pathname === "/" || pathname === "/infrastructure";
 
     const handleDownloadReport = () => {
         onStartExport();
@@ -73,6 +77,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onStartExport, onEndExport }) => 
 
             <div className={styles.headerRight}>
                 <Space>
+                    {user && isAnalyticsPage && (
+                        <Button
+                            icon={<FilterOutlined />}
+                            onClick={toggleFiltersPanel}
+                            type={filtersPanelExpanded ? "primary" : "default"}
+                            style={filtersPanelExpanded ? { backgroundColor: '#FF4F12', color: '#fff', borderColor: '#FF4F12' } : {}}
+                        >
+                            Фильтры
+                        </Button>
+                    )}
                     <Button
                         icon={<DownloadOutlined />}
                         onClick={handleDownloadReport}

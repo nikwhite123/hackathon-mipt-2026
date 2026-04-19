@@ -4,10 +4,10 @@
 import { Area, Column, Line, Pie } from "@ant-design/plots"
 import { Alert, Spin } from "antd"
 import { useMemo } from "react"
-import DashboardFiltersBar from "../dashboard/DashboardFiltersBar"
+// import DashboardFiltersBar from "../dashboard/DashboardFiltersBar"
 import { TARGET_OBJECT_LABELS } from "../../constants/targetObjectLabels"
 import { useDashboardStats } from "../../hooks/useDashboardStats"
-import { useAuthStore } from "../../store/authStore"
+// import { useAuthStore } from "../../store/authStore"
 import style from "../../Styles/HomePage.module.css"
 
 const rtPalette = ["#FF4F12", "#001A4D", "#0EA5E9", "#F59E0B", "#22C55E"]
@@ -86,7 +86,7 @@ function maxHourly(stats: StatsShape | null): number {
 }
 
 export default function DashboardOverview() {
-	const { user } = useAuthStore()
+	// const { user } = useAuthStore()
 	const { stats, loading, loadError } = useDashboardStats<StatsShape>()
 
 	const attacksByHour = useMemo(() => hourlySeries(stats), [stats])
@@ -104,7 +104,7 @@ export default function DashboardOverview() {
 		<div className={style.page}>
 			<div data-report-name="Дашборд">
 				<div className={style.container}>
-					{user ? <DashboardFiltersBar /> : null}
+					{/*{user ? <DashboardFiltersBar /> : null}*/}
 					{loadError ? (
 						<Alert type="warning" message={loadError} showIcon style={{ marginBottom: 16 }} />
 					) : null}

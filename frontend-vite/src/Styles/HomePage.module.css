@@ -236,15 +236,15 @@
 }
 
 .infraEarlyRow {
-  display: grid;
-  grid-template-columns: 1fr 1.65fr;
-  gap: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
 }
 
 .infraEarlyRow > div {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  height: auto;
 }
 
 .infraEarlyProgressContainer {
@@ -253,22 +253,23 @@
 
 .infraEarlyContent {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  flex: 1;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
 }
 
 .infraEarlyStatsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-top: auto;
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  margin-top: 0;
 }
 
-@media (max-width: 992px) {
-  .infraEarlyRow {
-    grid-template-columns: 1fr;
-    gap: 20px;
+@media (max-width: 600px) {
+  .infraEarlyContent {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
