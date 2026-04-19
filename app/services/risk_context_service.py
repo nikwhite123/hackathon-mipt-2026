@@ -42,6 +42,7 @@ class RiskContextService:
                 scope = narrowed
 
         hourly = scope.groupby('hour').size()
-        current = int(hourly.get(hour, 0))
-        baseline = max(float(hourly.mean()), 1.0)
+        current = int(hourly.to_dict().get(hour, 0))
+        mean_value = float(hourly.mean()) if not hourly.empty else 0.0
+        baseline = max(mean_value, 1.0) if mean_value == mean_value else 1.0
         return round(current / baseline, 2)

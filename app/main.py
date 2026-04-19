@@ -10,6 +10,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -113,11 +114,18 @@ def _error_payload(detail: str, *, request: Request, errors: list | None = None,
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """422 responses: detail, errors, request_id, code."""
-    logger.warning("Validation error: %s", exc.errors())
+    raw_errors = exc.errors()
+    logger.warning("Validation error: %s", raw_errors)
+    safe_errors = jsonable_encoder(raw_errors)
+
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content=_error_payload("Validation error", request=request, errors=exc.errors(), code="validation_error"),
+        content=_error_payload(
+            "Validation error",
+            request=request,
+            errors=safe_errors,
+            code="validation_error",
+        ),
     )
 
 
