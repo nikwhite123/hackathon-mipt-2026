@@ -1,16 +1,24 @@
 {
-  "name": "cli",
-  "version": "1.0.0",
-  "description": "",
+  "name": "rt-threat-analytics-cli",
+  "version": "2.0.0",
+  "description": "CLI client for the current RT Threat Analytics API endpoints",
   "main": "index.js",
   "bin": {
     "rt": "./index.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "help": "node index.js --help",
+    "smoke": "node index.js welcome"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "cli",
+    "security",
+    "fastapi",
+    "rostelecom",
+    "threat-analytics"
+  ],
+  "author": "hackathon-mipt-2026",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {

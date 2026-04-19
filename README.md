@@ -102,6 +102,104 @@ npm run dev -- --host 127.0.0.1 --port 5173
 2. При необходимости заполнить настройки организации.
 3. Проверить разделы аналитики, аудита и прогнозов.
 
+### 6. CLI
+
+```bash
+cd cli
+npm install
+npm link
+rt --help
+```
+
+После `npm link` команда `rt` становится глобально доступной в системе.
+
+Если потом нужно убрать глобальную установку:
+
+```bash
+npm unlink -g rt-threat-analytics-cli
+```
+
+CLI привязан к актуальным ручкам из `app/main.py`:
+
+- `status` -> `GET /health`
+- `ready` -> `GET /ready`
+- `onboarding` -> пошаговый сценарий старта и работы с `organization_code`
+- `threats` -> `GET /threats`
+- `stats` -> `GET /stats`
+- `stats-facets` -> `GET /stats/facets`
+- `predict` -> `POST /predict`
+- `predict-time` -> `POST /predict/time`
+- `predict-target` -> `POST /predict/target`
+- `predict-method` -> `POST /predict/method`
+- `predict-recommendations` -> `POST /predict/recommendations`
+- `login` -> `POST /auth/login`
+- `register` -> `POST /auth/register`
+- `me` -> `GET /auth/me`
+- `org-lookup` -> `GET /auth/organization/by-code`
+- `org-codes` -> `GET /auth/me` + `GET /stats/facets`
+- `org-settings-get` -> `GET /org/settings`
+- `org-settings-set` -> `POST /org/settings`
+- `vuln-map` -> `POST /vulnerabilities/map`
+- `openapi` -> `GET /openapi.json`
+
+Примеры:
+
+```bash
+# Проверить backend
+rt status
+rt ready
+rt onboarding
+
+# Посмотреть угрозы
+rt threats --limit 3
+
+# Посмотреть openapi схему
+rt openapi
+
+# Найти организацию по известному коду
+rt org-lookup 1008
+
+# Зарегистрироваться и сохранить токен
+rt register Ivan Petrov ivan@example.com Secret12345 1008
+rt login ivan@example.com Secret12345
+rt me
+rt org-codes
+
+# Получить/обновить настройки организации
+rt org-settings-get
+rt org-settings-set --region Moscow --industry telecom --host-count 1200 --technologies nginx,postgres,redis
+
+# Получить сводку
+rt stats
+
+# Сформировать прогноз из флагов
+rt predict 1008 --region Moscow --industry telecom --asset-type vpn_gateway --prefer-ml
+
+# Сформировать прогноз из JSON payload
+rt predict --payload-file ./examples/predict.sample.json
+
+# Прогнать маппинг уязвимостей
+rt vuln-map ./examples/vulnerabilities.sample.json
+
+# Получить сырой JSON вместо форматированного вывода
+rt --json openapi
+```
+
+Для переключения на другой backend используйте `--base-url` или переменную окружения `RT_API_BASE_URL`.
+
+Если `organization_code` неизвестен заранее, самый понятный старт такой:
+
+```bash
+rt onboarding
+```
+
+Важно: в текущем `main` нет публичной ручки со списком **всех** организаций. Поэтому путь такой:
+
+1. взять код из сидов / у команды;
+2. проверить его через `rt org-lookup <code>`;
+3. зарегистрироваться;
+4. после логина смотреть свой контекст через `rt org-codes`.
+
 ---
 
 ## API
