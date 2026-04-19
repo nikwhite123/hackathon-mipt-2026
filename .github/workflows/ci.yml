@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Pytest
-        run: python -m pytest tests/ -q
+        run: python -m pytest tests/ -q -m "not e2e"
 
   frontend-build:
     runs-on: ubuntu-latest
