@@ -1,214 +1,399 @@
 #!/usr/bin/env node
 
+const fs = require('fs');
+const path = require('path');
 const { Command } = require('commander');
 const chalk = require('chalk');
 const axios = require('axios');
 const Table = require('cli-table3');
 
+const DEFAULT_BASE_URL = process.env.RT_API_BASE_URL || 'http://127.0.0.1:8000';
 const program = new Command();
 
 program
-    .name('rt-infra')
-    .description('Инструмент командной строки RT Infra Security')
-    .version('1.0.0');
+    .name('rt')
+    .description('CLI-клиент для актуальных ручек RT Threat Analytics API')
+    .version('2.0.0')
+    .option('-u, --base-url <url>', 'Базовый URL API', DEFAULT_BASE_URL);
+
+function getBaseUrl() {
+    const options = program.opts();
+    return (options.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, '');
+}
+
+function getApi() {
+    return axios.create({
+        baseURL: getBaseUrl(),
+        timeout: 30000,
+        headers: { 'Content-Type': 'application/json' },
+    });
+}
+
+function printSection(title) {
+    console.log('\n' + chalk.bold.hex('#7733FF')(title));
+}
+
+function severityColor(severity) {
+    if (severity === 'critical') return chalk.red.bold;
+    if (severity === 'high') return chalk.red;
+    if (severity === 'medium') return chalk.yellow;
+    if (severity === 'low') return chalk.green;
+    return chalk.white;
+}
+
+function formatPercent(value) {
+    return `${(Number(value) * 100).toFixed(0)}%`;
+}
+
+function normalizeBooleanOption(value, fallback = true) {
+    if (typeof value === 'boolean') {
+        return value;
+    }
+    return fallback;
+}
+
+function defaultSeason() {
+    const month = new Date().getMonth() + 1;
+    if ([12, 1, 2].includes(month)) return 'winter';
+    if ([3, 4, 5].includes(month)) return 'spring';
+    if ([6, 7, 8].includes(month)) return 'summer';
+    return 'autumn';
+}
+
+function defaultDayOfWeek() {
+    const jsDay = new Date().getDay();
+    return jsDay === 0 ? 7 : jsDay;
+}
+
+function defaultHour() {
+    return new Date().getHours();
+}
+
+function buildPredictPayload(organizationId, options) {
+    return {
+        organization_id: organizationId,
+        region: options.region || 'Moscow',
+        industry: options.industry || 'telecom',
+        season: options.season || defaultSeason(),
+        day_of_week: Number(options.dayOfWeek ?? defaultDayOfWeek()),
+        hour: Number(options.hour ?? defaultHour()),
+        asset_type: options.assetType || 'vpn_gateway',
+        has_external_access: normalizeBooleanOption(options.externalAccess, true),
+        privileged_accounts_count: Number(options.privilegedAccountsCount ?? 12),
+        known_vulnerabilities_count: Number(options.knownVulnerabilitiesCount ?? 3),
+    };
+}
+
+function printRationale(lines) {
+    if (!Array.isArray(lines) || lines.length === 0) {
+        return;
+    }
+    printSection('Обоснование');
+    for (const line of lines) {
+        console.log(chalk.gray(`• ${line}`));
+    }
+}
+
+function printRecommendations(recommendations) {
+    if (!Array.isArray(recommendations) || recommendations.length === 0) {
+        return;
+    }
+    printSection('Рекомендации');
+    for (const recommendation of recommendations) {
+        console.log(
+            `${chalk.green('✔')} ${chalk.white(recommendation.title)} ${chalk.gray(`(${recommendation.code}, p${recommendation.priority})`)}`
+        );
+    }
+}
+
+function printValidationErrors(errors) {
+    if (!Array.isArray(errors) || errors.length === 0) {
+        return;
+    }
+    printSection('Validation errors');
+    for (const error of errors) {
+        const location = Array.isArray(error.loc) ? error.loc.join('.') : String(error.loc);
+        console.log(`${chalk.red('•')} ${location}: ${error.msg}`);
+    }
+}
+
+function handleApiError(error, fallbackMessage) {
+    if (error.response) {
+        const detail = error.response.data?.detail || fallbackMessage;
+        console.error(chalk.red(`✘ ${detail}`));
+        printValidationErrors(error.response.data?.errors);
+        return;
+    }
+    if (error.request) {
+        console.error(chalk.red(`✘ Backend недоступен: ${getBaseUrl()}`));
+        console.error(chalk.yellow('Запустите API: `uvicorn app.main:app --reload --port 8000`'));
+        return;
+    }
+    console.error(chalk.red(`✘ ${fallbackMessage}`));
+    console.error(chalk.gray(String(error.message || error)));
+}
+
+function addPredictionOptions(command) {
+    return command
+        .requiredOption('--region <region>', 'Регион организации', 'Moscow')
+        .requiredOption('--industry <industry>', 'Отрасль', 'telecom')
+        .option('--season <season>', 'Сезон: winter|spring|summer|autumn', defaultSeason())
+        .option('--day-of-week <number>', 'День недели: 1..7', String(defaultDayOfWeek()))
+        .option('--hour <number>', 'Час: 0..23', String(defaultHour()))
+        .option('--asset-type <assetType>', 'Тип актива', 'vpn_gateway')
+        .option('--no-external-access', 'Отключить внешний доступ')
+        .option('--privileged-accounts-count <number>', 'Количество привилегированных учеток', '12')
+        .option('--known-vulnerabilities-count <number>', 'Количество известных уязвимостей', '3');
+}
+
+async function runPrediction(endpoint, organizationId, options, printer) {
+    const payload = buildPredictPayload(organizationId, options);
+    try {
+        const response = await getApi().post(endpoint, payload);
+        printer(response.data, payload);
+    } catch (error) {
+        handleApiError(error, `Ошибка при вызове ${endpoint}`);
+        process.exitCode = 1;
+    }
+}
 
 program
     .command('welcome')
-    .description('Показать приветствие и список возможностей')
+    .description('Показать список доступных команд для актуальных ручек API')
     .action(() => {
         const logoText = `
-        ██████╗ ████████╗    ██╗███╗   ██╗███████╗██████╗  █████╗ 
-        ██╔══██╗╚══██╔══╝    ██║████╗  ██║██╔════╝██╔══██╗██╔══██╗
-        ██████╔╝   ██║       ██║██╔██╗ ██║█████╗  ██████╔╝███████║
-        ██╔══██╗   ██║       ██║██║╚██╗██║██╔══╝  ██╔══██╗██╔══██║
-        ██║  ██║   ██║       ██║██║ ╚████║██║     ██║  ██║██║  ██║
-        ╚═╝  ╚═╝   ╚═╝       ╚═╝╚═╝  ╚═══╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝
-        `;
+██████╗ ████████╗    ██╗███╗   ██╗███████╗██████╗  █████╗
+██╔══██╗╚══██╔══╝    ██║████╗  ██║██╔════╝██╔══██╗██╔══██╗
+██████╔╝   ██║       ██║██╔██╗ ██║█████╗  ██████╔╝███████║
+██╔══██╗   ██║       ██║██║╚██╗██║██╔══╝  ██╔══██╗██╔══██║
+██║  ██║   ██║       ██║██║ ╚████║██║     ██║  ██║██║  ██║
+╚═╝  ╚═╝   ╚═╝       ╚═╝╚═╝  ╚═══╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝
+`;
 
-        const colors = [chalk.hex('#7733FF'), chalk.hex('#FF502F'), chalk.cyan];
-        let i = 0;
+        console.log(chalk.hex('#7733FF').bold(logoText));
+        const table = new Table({
+            head: [chalk.bold.hex('#FF502F')('Команда'), chalk.bold.hex('#FF502F')('Что делает')],
+            colWidths: [28, 58],
+            wordWrap: true,
+        });
 
-        const interval = setInterval(() => {
-            process.stdout.write('\x1Bc');
-            console.log(colors[i % colors.length].bold(logoText));
-            console.log(chalk.bold.cyan('    === RT INFRA SECURITY TERMINAL v1.0.0 ===\n'));
-            i++;
-        }, 200);
+        table.push(
+            ['status', 'Проверяет `GET /health`'],
+            ['threats', 'Показывает `GET /threats` с фильтрами severity/category'],
+            ['stats', 'Печатает сводку по `GET /stats`'],
+            ['predict', 'Вызывает `POST /predict`'],
+            ['predict-time', 'Вызывает `POST /predict/time`'],
+            ['predict-target', 'Вызывает `POST /predict/target`'],
+            ['predict-method', 'Вызывает `POST /predict/method`'],
+            ['predict-recommendations', 'Вызывает `POST /predict/recommendations`'],
+            ['vuln-map', 'Вызывает `POST /vulnerabilities/map` из JSON-файла'],
+        );
 
-        setTimeout(() => {
-            clearInterval(interval);
-            process.stdout.write('\x1Bc');
-            console.log(chalk.hex('#7733FF').bold(logoText));
-
-            const mainFrame = new Table({
-                head: [chalk.bold.hex('#FF502F')('   --- ROSTELECOM INFRA SECURITY SYSTEM ---   ')],
-                style: { 'padding-left': 2, 'padding-right': 2 },
-                chars: { 
-                    'top': '═', 'top-mid': '╤', 'top-left': '╔', 'top-right': '╗',
-                    'bottom': '═', 'bottom-mid': '╧', 'bottom-left': '╚', 'bottom-right': '╝',
-                    'left': '║', 'left-mid': '╟', 'mid': '─', 'mid-mid': '┼',
-                    'right': '║', 'right-mid': '╢', 'middle': '│' 
-                }
-            });
-
-            const content = [
-                chalk.gray('Централизованный терминал мониторинга и ML-прогнозирования'),
-                '',
-                chalk.bold.hex('#7733FF')('ДОСТУПНЫЕ КОМАНДЫ:'),
-                `${chalk.bold.hex('#FF502F')('status ')}      ${chalk.white('Проверка связи с ядром системы')}`,
-                `${chalk.bold.hex('#FF502F')('stats  ')}      ${chalk.white('Аналитическая сводка по регионам')}`,
-                `${chalk.bold.hex('#FF502F')('threats')}      ${chalk.white('Реестр угроз ИБ (FSTEC data)')}`,
-                `${chalk.bold.hex('#FF502F')('predict')}      ${chalk.white('Запуск ML-анализа векторов атак')}`,
-                '',
-                chalk.cyan('Пример: ') + chalk.white('rt status'),
-                chalk.cyan('Подсказка: ') + chalk.white('используйте --help для каждой команды')
-            ].join('\n');
-
-            mainFrame.push([content]);
-            console.log(mainFrame.toString());
-            console.log('\n' + chalk.hex('#7733FF')('READY_TO_SCAN > ') + chalk.white('Введите команду...'));
-        }, 1200);
+        console.log(table.toString());
+        console.log(chalk.gray(`\nBase URL: ${getBaseUrl()}`));
+        console.log(chalk.gray('Используйте `--help` у команды для списка опций.'));
     });
 
 program
     .command('status')
-    .description('Проверить доступность систем')
+    .description('Проверить доступность `GET /health`')
     .action(async () => {
-        console.log(chalk.gray('Проверка связи с бэкендом Rostelecom...'));
         try {
-            const response = await axios.get('http://localhost:8000/health');
-            if (response.data.status === 'ok') {
-                console.log(chalk.green('✔ Система мониторинга онлайн'));
-                console.log(chalk.white(`Версия API: 2.1.0`));
-            }
+            const response = await getApi().get('/health');
+            console.log(chalk.green('✔ Backend доступен'));
+            console.log(`${chalk.white('URL:')} ${getBaseUrl()}`);
+            console.log(`${chalk.white('Status:')} ${chalk.bold(response.data.status)}`);
         } catch (error) {
-            console.log(chalk.red('✘ Ошибка: Бэкенд недоступен'));
-            console.log(chalk.yellow('Запустите сервер: uvicorn main:app --reload --port 8000'));
+            handleApiError(error, 'Ошибка проверки health');
+            process.exitCode = 1;
         }
     });
 
 program
     .command('threats')
-    .description('Показать реестр угроз')
-    .action(async () => {
+    .description('Показать список угроз из `GET /threats`')
+    .option('--severity <severity>', 'Фильтр severity: low|medium|high|critical')
+    .option('--category <category>', 'Фильтр по категории')
+    .option('--limit <number>', 'Показать только первые N записей')
+    .action(async (options) => {
         try {
-            const response = await axios.get('http://localhost:8000/threats');
-            const threats = response.data.items;
-
+            const response = await getApi().get('/threats', {
+                params: {
+                    severity: options.severity,
+                    category: options.category,
+                },
+            });
+            const limit = options.limit ? Number(options.limit) : undefined;
+            const items = limit ? response.data.items.slice(0, limit) : response.data.items;
             const table = new Table({
-                head: [chalk.cyan('ID'), chalk.cyan('Название'), chalk.cyan('Уровень')],
-                colWidths: [12, 50, 15]
+                head: ['ID', 'Название', 'Категория', 'Severity', 'Targets'],
+                colWidths: [10, 34, 20, 12, 28],
+                wordWrap: true,
             });
 
-            threats.forEach(t => {
-                let sevColor = chalk.white;
-                if (t.severity === 'critical') sevColor = chalk.red.bold;
-                if (t.severity === 'high') sevColor = chalk.red;
-                if (t.severity === 'medium') sevColor = chalk.yellow;
-
+            items.forEach((item) => {
                 table.push([
-                    t.threat_id, 
-                    t.name, 
-                    sevColor(t.severity.toUpperCase())
+                    item.threat_id,
+                    item.name,
+                    item.category,
+                    severityColor(item.severity)(item.severity.toUpperCase()),
+                    item.likely_targets.join(', '),
                 ]);
             });
 
             console.log(table.toString());
             console.log(chalk.gray(`Всего записей: ${response.data.total}`));
         } catch (error) {
-            console.log(chalk.red('✘ Ошибка при получении реестра угроз.'));
+            handleApiError(error, 'Ошибка получения списка угроз');
+            process.exitCode = 1;
         }
     });
 
 program
     .command('stats')
-    .description('Краткая сводка аналитики по угрозам')
+    .description('Показать сводку из `GET /stats`')
     .action(async () => {
         try {
-            const response = await axios.get('http://localhost:8000/stats');
-            const d = response.data;
+            const response = await getApi().get('/stats');
+            const stats = response.data;
 
-            console.log(chalk.bold.hex('#7733FF')('\n--- СВОДНАЯ СТАТИСТИКА RT INFRA ---'));
-            
-            console.log(`${chalk.white('Всего инцидентов:')} ${chalk.bold(d.total_incidents)}`);
-            console.log(`${chalk.white('Топ метод атаки:')}  ${chalk.red(d.top_attack_method.toUpperCase())}`);
-            console.log(`${chalk.white('Основная цель:')}    ${chalk.cyan(d.top_target_object.toUpperCase())}`);
-            
-            console.log(chalk.gray('\nРаспределение по рискам:'));
-            const r = d.risk_score_distribution || d.risk_distribution;
-            console.log(`${chalk.red('  Critical:')} ${r.critical}`);
-            console.log(`${chalk.red('  High:')}     ${r.high}`);
-            console.log(`${chalk.yellow('  Medium:')}   ${r.medium}`);
-            console.log(`${chalk.green('  Low:')}      ${r.low}`);
+            printSection('RT Threat Analytics Summary');
+            console.log(`${chalk.white('Всего инцидентов:')} ${chalk.bold(stats.total_incidents)}`);
+            console.log(`${chalk.white('Топ метод атаки:')} ${chalk.red(stats.top_attack_method)}`);
+            console.log(`${chalk.white('Основная цель:')} ${chalk.cyan(stats.top_target_object)}`);
 
-            console.log(chalk.gray('\nТоп целей по объектам:'));
-            const targets = d.incidents_by_target_object;
-            Object.entries(targets)
-                .sort(([,a], [,b]) => b - a)
-                .slice(0, 3)                
-                .forEach(([name, count]) => {
-                    console.log(`  • ${name.padEnd(12)} : ${count}`);
-                });
+            const risk = stats.risk_distribution || {};
+            printSection('Risk distribution');
+            console.log(`${chalk.red('critical:')} ${risk.critical ?? 0}`);
+            console.log(`${chalk.red('high:')}     ${risk.high ?? 0}`);
+            console.log(`${chalk.yellow('medium:')}   ${risk.medium ?? 0}`);
+            console.log(`${chalk.green('low:')}      ${risk.low ?? 0}`);
 
-            console.log(chalk.bold.hex('#7733FF')('-----------------------------------\n'));
+            printSection('Top regions');
+            Object.entries(stats.incidents_by_region || {})
+                .slice(0, 10)
+                .forEach(([region, count]) => console.log(`• ${region}: ${count}`));
+
+            printSection('Top target objects');
+            Object.entries(stats.incidents_by_target_object || {})
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 5)
+                .forEach(([target, count]) => console.log(`• ${target}: ${count}`));
         } catch (error) {
-            console.log(chalk.red('✘ Ошибка получения статистики.'));
+            handleApiError(error, 'Ошибка получения статистики');
+            process.exitCode = 1;
         }
     });
 
-program
-    .command('predict <org_id>')
-    .action(async (orgId) => {
-        console.log(chalk.magenta(`📡 Анализ векторов атак для ID: ${orgId}...`));
-        try {
-            const response = await axios.post('http://localhost:8000/predict', {
-                organization_id: orgId,
-                infrastructure_type: "hybrid",
-                industry: "finance",
-                region: "Moscow",
-                season: "spring",
-                day_of_week: 3,
-                hour: 12,
-                asset_type: "db_server",
-                privileged_accounts_count: 5,
-                known_vulnerabilities_count: 10
-            });
+addPredictionOptions(
+    program
+        .command('predict <organizationId>')
+        .description('Полный прогноз через `POST /predict`')
+).action(async (organizationId, options) => {
+    await runPrediction('/predict', organizationId, options, (data) => {
+        printSection('Прогноз');
+        console.log(`${chalk.white('Risk score:')} ${chalk.red.bold(formatPercent(data.risk_score))}`);
+        console.log(`${chalk.white('Метод:')} ${chalk.cyan(data.predicted_attack_method)}`);
+        console.log(`${chalk.white('Цель:')} ${chalk.cyan(data.predicted_target_object)}`);
+        console.log(`${chalk.white('Окно атаки:')} ${chalk.yellow(data.predicted_attack_time_window)}`);
+        console.log(`${chalk.white('Confidence:')} ${chalk.bold(formatPercent(data.confidence))}`);
+        printRationale(data.rationale);
+        printRecommendations(data.recommendations);
+    });
+});
 
+addPredictionOptions(
+    program
+        .command('predict-time <organizationId>')
+        .description('Прогноз временного окна через `POST /predict/time`')
+).action(async (organizationId, options) => {
+    await runPrediction('/predict/time', organizationId, options, (data) => {
+        printSection('Time prediction');
+        console.log(`${chalk.white('Окно атаки:')} ${chalk.yellow(data.predicted_attack_time_window)}`);
+        console.log(`${chalk.white('Confidence:')} ${chalk.bold(formatPercent(data.confidence))}`);
+        printRationale(data.rationale);
+    });
+});
+
+addPredictionOptions(
+    program
+        .command('predict-target <organizationId>')
+        .description('Прогноз объекта атаки через `POST /predict/target`')
+).action(async (organizationId, options) => {
+    await runPrediction('/predict/target', organizationId, options, (data) => {
+        printSection('Target prediction');
+        console.log(`${chalk.white('Цель:')} ${chalk.cyan(data.predicted_target_object)}`);
+        console.log(`${chalk.white('Confidence:')} ${chalk.bold(formatPercent(data.confidence))}`);
+        printRationale(data.rationale);
+    });
+});
+
+addPredictionOptions(
+    program
+        .command('predict-method <organizationId>')
+        .description('Прогноз метода атаки через `POST /predict/method`')
+).action(async (organizationId, options) => {
+    await runPrediction('/predict/method', organizationId, options, (data) => {
+        printSection('Method prediction');
+        console.log(`${chalk.white('Метод:')} ${chalk.cyan(data.predicted_attack_method)}`);
+        console.log(`${chalk.white('Confidence:')} ${chalk.bold(formatPercent(data.confidence))}`);
+        printRationale(data.rationale);
+    });
+});
+
+addPredictionOptions(
+    program
+        .command('predict-recommendations <organizationId>')
+        .description('Рекомендации через `POST /predict/recommendations`')
+).action(async (organizationId, options) => {
+    await runPrediction('/predict/recommendations', organizationId, options, (data) => {
+        printSection('Recommendations response');
+        console.log(`${chalk.white('Метод:')} ${chalk.cyan(data.predicted_attack_method)}`);
+        console.log(`${chalk.white('Цель:')} ${chalk.cyan(data.predicted_target_object)}`);
+        console.log(`${chalk.white('Confidence:')} ${chalk.bold(formatPercent(data.confidence))}`);
+        printRecommendations(data.recommendations);
+    });
+});
+
+program
+    .command('vuln-map <inputFile>')
+    .description('Сопоставить уязвимости через `POST /vulnerabilities/map`')
+    .action(async (inputFile) => {
+        try {
+            const resolved = path.resolve(process.cwd(), inputFile);
+            const raw = fs.readFileSync(resolved, 'utf-8');
+            const parsed = JSON.parse(raw);
+            const payload = Array.isArray(parsed) ? { vulnerabilities: parsed } : parsed;
+            const response = await getApi().post('/vulnerabilities/map', payload);
             const data = response.data;
 
-            console.log(chalk.bold.green('\n✔ Прогноз сформирован успешно:'));
-            console.log(chalk.white('--------------------------------------------------'));
-            
-            const probability = (data.risk_score * 100).toFixed(0);
-            const target = data.predicted_target_object;
-            const method = data.predicted_attack_method;
-            const time = data.predicted_attack_time_window;
+            printSection('Vulnerability mapping');
+            console.log(`${chalk.white('Assets:')} ${data.total_assets}`);
+            console.log(`${chalk.white('Vulnerabilities:')} ${data.total_vulnerabilities}`);
 
-            console.log(`Вероятность:  ${chalk.red.bold(probability + '%')}`);
-            console.log(`Цель атаки:   ${chalk.cyan(target.toUpperCase())}`);
-            console.log(`Метод:        ${chalk.cyan(method.replace('_', ' ').toUpperCase())}`);
-            console.log(`Окно атаки:   ${chalk.yellow(time)}`);
-            console.log(`Уверенность ML: ${chalk.gray(data.confidence * 100 + '%')}`);
-            
-            console.log(chalk.white('\nОбоснование (Rationale):'));
-            data.rationale.forEach(line => {
-                console.log(chalk.gray(` • ${line}`));
-            });
-
-            if (data.recommendations && data.recommendations.length > 0) {
-                console.log(chalk.bold.yellow('\nРекомендации по защите:'));
-                data.recommendations.forEach(rec => {
-                    console.log(`${chalk.green('✔')} ${chalk.white(rec.title)} ${chalk.gray('(' + rec.code + ')')}`);
+            for (const item of data.items) {
+                console.log(`\n${chalk.bold(item.asset_name)} ${chalk.gray(`(${item.vulnerability_code})`)}`);
+                if (!item.matches.length) {
+                    console.log(chalk.gray('  Нет совпадений'));
+                    continue;
+                }
+                item.matches.slice(0, 3).forEach((match) => {
+                    console.log(
+                        `  ${chalk.green('•')} ${match.threat.threat_id} ${match.threat.name} ` +
+                        chalk.gray(`score=${match.match_score}`)
+                    );
+                    console.log(chalk.gray(`    ${match.reason}`));
                 });
             }
-            
-            console.log(chalk.white('--------------------------------------------------'));
-
         } catch (error) {
-            console.log(chalk.red('✘ Ошибка при генерации прогноза.'));
-            if (error.response?.data?.errors) {
-                console.dir(error.response.data.errors, { depth: null });
+            if (error instanceof SyntaxError) {
+                console.error(chalk.red('✘ Некорректный JSON во входном файле'));
+            } else if (error.code === 'ENOENT') {
+                console.error(chalk.red(`✘ Файл не найден: ${inputFile}`));
+            } else {
+                handleApiError(error, 'Ошибка маппинга уязвимостей');
             }
+            process.exitCode = 1;
         }
     });
 
