@@ -14,7 +14,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 BASE_URL = os.getenv("E2E_BASE_URL", "http://127.0.0.1:8080")
 SEEDED_ORG_CODE = os.getenv("E2E_ORG_CODE", "23")
-HEADLESS = os.getenv("E2E_HEADLESS", "0") != "0"
+HEADLESS = os.getenv("E2E_HEADLESS", "1") != "0"
 TIMEOUT = int(os.getenv("E2E_TIMEOUT", "20"))
 TEST_PASSWORD = os.getenv("E2E_TEST_PASSWORD", "Secret12345!")
 
