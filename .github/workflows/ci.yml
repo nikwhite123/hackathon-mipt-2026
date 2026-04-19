@@ -54,4 +54,4 @@ jobs:
 
       - name: Build Backend Image
         run: |
-          docker build -t rostelecom-api:latest ./backend
+          docker build -t rostelecom-api:latest
