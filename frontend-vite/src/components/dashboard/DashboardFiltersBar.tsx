@@ -1,7 +1,7 @@
 /**
  * Dashboard filter controls bound to `dashboardFiltersStore` and `/stats/facets` options.
  */
-// import { DownOutlined, UpOutlined } from "@ant-design/icons"
+import { DownOutlined, UpOutlined } from "@ant-design/icons"
 import { Button, Col, Row, Select, Space, Typography } from "antd"
 import { useEffect, useState } from "react"
 import { fetchStatsFacets } from "../../api/analyticsService"
@@ -53,7 +53,7 @@ export default function DashboardFiltersBar() {
 		attackMethod,
 		filtersPanelExpanded,
 		setPatch,
-		// toggleFiltersPanel,
+		toggleFiltersPanel,
 		reset,
 	} = useDashboardFiltersStore()
 
@@ -89,15 +89,15 @@ export default function DashboardFiltersBar() {
 			<Row justify="space-between" align="middle" wrap={false} style={{ marginBottom: filtersPanelExpanded ? 8 : 0 }}>
 				<Typography.Text strong>Фильтры выборки</Typography.Text>
 				<Space size="small">
-					{/*<Button*/}
-					{/*	type="text"*/}
-					{/*	size="small"*/}
-					{/*	icon={filtersPanelExpanded ? <UpOutlined /> : <DownOutlined />}*/}
-					{/*	onClick={() => toggleFiltersPanel()}*/}
-					{/*	aria-expanded={filtersPanelExpanded}*/}
-					{/*>*/}
-					{/*	/!*{filtersPanelExpanded ? "Скрыть" : "Показать"}*!/*/}
-					{/*</Button>*/}
+					<Button
+						type="text"
+						size="small"
+						icon={filtersPanelExpanded ? <UpOutlined /> : <DownOutlined />}
+						onClick={() => toggleFiltersPanel()}
+						aria-expanded={filtersPanelExpanded}
+					>
+						{filtersPanelExpanded ? "Скрыть" : "Показать"}
+					</Button>
 					{filtersPanelExpanded ? (
 						<Button size="small" onClick={() => reset()}>
 							Сбросить
