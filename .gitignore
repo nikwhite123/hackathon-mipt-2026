@@ -50,3 +50,11 @@ htmlcov/
 
 # Windows
 Thumbs.db
+
+# Additional Python / tooling caches
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+*.egg-info/
+.coverage.*
+.python-version

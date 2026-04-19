@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import warnings
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -34,6 +35,13 @@ def create_access_token(subject: str, organization_id: int, expires_delta: timed
 def decode_token(token: str) -> dict:
     """Decode a JWT; raises ValueError on signature or validation errors."""
     try:
-        return jwt.decode(token, settings.jwt_secret_key, algorithms=[ALGORITHM])
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=r"datetime\.datetime\.utcnow\(\) is deprecated.*",
+                category=DeprecationWarning,
+                module=r"jose\.jwt",
+            )
+            return jwt.decode(token, settings.jwt_secret_key, algorithms=[ALGORITHM])
     except JWTError as exc:
         raise ValueError('Could not validate credentials') from exc
