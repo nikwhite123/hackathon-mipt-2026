@@ -2,7 +2,7 @@
 FROM python:3.12-slim-bookworm
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gcc libpq-dev \
+    && apt-get install -y --no-install-recommends gcc libpq-dev dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -18,7 +18,7 @@ COPY models ./models
 COPY scripts ./scripts
 COPY data ./data
 
-RUN chmod +x scripts/docker-api-entrypoint.sh
+RUN dos2unix scripts/docker-api-entrypoint.sh && chmod +x scripts/docker-api-entrypoint.sh
 
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
